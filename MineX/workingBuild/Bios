@@ -27,7 +27,7 @@ print("Starting to peripheral scanning")
 -- print("ROM HDD is found")
 local mass=rs.getSides()
 gbPRP={}
-
+MineX={}
 for n=1,#mass do
 
 if peripheral.getType(mass[n])~=nil then
