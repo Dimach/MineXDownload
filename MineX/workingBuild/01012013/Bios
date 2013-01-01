@@ -52,7 +52,6 @@ for n=1,#mass do
 
 
 if peripheral.getType(mass[n])=="modem" then
-modem[#modem+1]=peripheral.getType(mass[n])
 print("Wireless modem found at "..mass[n])
 end
 
