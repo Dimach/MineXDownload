@@ -90,18 +90,6 @@ function buttonAllPos(bts,x,y,btsn,sel)
 	
 end
 
-function FileGet(paste,name)
-
-local response = http.get("http://industrialserver.ru/MineX/"..paste)
-local sResponse = response.readAll()
-
-response.close()
-
-local file = fs.open( shell.resolve(name), "w" )
-file.write( sResponse )
-file.close()
-end
-
 function TextGet(pos)
 lang={}
 lang[1]={
@@ -200,21 +188,36 @@ writeCenter(TextGet(9),4,23)
 writeCenter("--------------------------------------------------",5,50)
 
 	local response = http.get(
-		"http://industrialserver.ru/MineX/version.txt"
+		"https://raw.github.com/Dimach/MineXDownload/master/MineX/version.txt"
 		)
 	build = response.readAll()
 
 		response.close()
 
-FileGet(build.."/fl","fl")
-dofile("fl")
+		
+		local response = http.get(
+		"https://raw.github.com/Dimach/MineXDownload/master/MineX/stable/"..build.."/fl"
+		)
+	fl = response.readAll()
+
+		response.close()
+		
+
+ f=io.open("fl","w")
+ f:write(fl)
+ f:close()
+ dofile("fl")
+ 
+
+
+
 
 
 
 
 
 for i=1,#fileslist do
-print(i)
+
 if fileslist[i][1]=="dir" then
 
 fs.makeDir(fileslist[i][2])
@@ -223,7 +226,7 @@ progresBar(i*100/#fileslist,1,9,49)
 else
 
 	local response = http.get(
-		"http://industrialserver.ru/MineX/"..build.."/"..fileslist[i][1]
+		"https://raw.github.com/Dimach/MineXDownload/master/MineX/stable/"..build.."/"..fileslist[i][1]
 		)
 			fils = response.readAll()
 
@@ -245,4 +248,10 @@ end
 
 sLang = 0
 FormHello()
+term.clear()
+term.setCursorPos(1,1)
+textutils.slowPrint("MineX installation compleated...")
+textutils.slowPrint("CraftBIOS will be rebooted...")
+
+sleep(1)
 os.reboot()
