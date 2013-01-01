@@ -19,7 +19,7 @@ return function() func(unpack(arg)) end
 end
 
 if register.get("config.ver")==nil then
-register.new("config.host","https://raw.github.com/Dimach/MineXDownload/master/MineX/")
+register.new("config.host","https://raw.github.com/Dimach/MineXDownload/master/MineX/stable")
 
 end
 if register.get("config.ver")==nil then
