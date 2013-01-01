@@ -48,13 +48,13 @@ end
 print("BOOTUP succes")
 giF=false
 local function graphInit()
-f=io.open("BOOTUP.txt","r")
+local f=io.open("BOOTUP.txt","r")
 local co=0
 while f:read()~=nil do
 co=co+1
 end
 f:close()
-file=io.open("BOOTUP.txt","r")
+local file=io.open("BOOTUP.txt","r")
 for b=1,co/19 do
 sleep(1)
 term.clear()

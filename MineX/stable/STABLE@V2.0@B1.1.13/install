@@ -248,4 +248,10 @@ end
 
 sLang = 0
 FormHello()
+term.clear()
+term.setCursorPos(1,1)
+textutils.slowPrint("MineX installation compleated...")
+textutils.slowPrint("CraftBIOS will be rebooted...")
+
+sleep(1)
 os.reboot()
