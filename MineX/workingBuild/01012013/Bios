@@ -29,7 +29,7 @@ local mass=rs.getSides()
 gbPRP={}
 MineX={}
 MineX.CDROMS={}
-MineX.CDROMS.symbols={"D","E","F","G","H","I","S"}
+MineX.CDROMS.symbols={"D","E","F","G","H","I"}
 MineX.CDROMS.sides={}
 for i=1,#mass do
 if peripheral.getType(mass[i])=="drive" then
