@@ -1,0 +1,74 @@
+arg={...}
+local d=tonumber(arg[1]) or 1  
+term.clear()
+term.setCursorPos( 1, 1 )
+print("GIGABOOT !over9000.1!V")
+sleep(0.5)
+print("_")
+sleep(0.3)
+
+term.setCursorPos( 1, 2 )
+term.clearLine()
+print(" _")
+
+sleep(0.3)
+term.setCursorPos( 1, 2 )
+term.clearLine()
+
+
+
+
+sleep(d)
+
+print("Starting to peripheral scanning")
+
+-- print("Finding SATA HDD ROM")
+-- sleep(d)
+-- print("ROM HDD is found")
+local mass=rs.getSides()
+gbPRP={}
+
+for n=1,#mass do
+
+if peripheral.getType(mass[n])~=nil then
+gbPRP[n]=peripheral.getType(mass[n])
+print(gbPRP[n])
+sleep(0.3)
+
+end
+
+
+
+
+
+-- if peripheral.getType(mass[n])=="drive" and n~=1 then
+-- drive[#drive+1]=peripheral.getType(mass[n])
+-- print("Disk drive found at "..mass[n])
+-- end
+-- if peripheral.getType(mass[n])=="modem" then
+-- modem[#modem+1]=peripheral.getType(mass[n])
+-- print("Wireless modem found at "..mass[n])
+-- end
+
+
+end
+sleep(d)
+print("ROOT is found")
+sleep(d)
+-- print("MineX allocated!")
+-- sleep(d)
+
+print("Press any key...")
+local g=0
+arg=0
+
+g,arg=os.pullEvent("key")
+
+
+
+print("BOOT!")
+sleep(1)
+term.clear()
+term.setCursorPos( 1, 1 )
+
+dofile("MineXstart")

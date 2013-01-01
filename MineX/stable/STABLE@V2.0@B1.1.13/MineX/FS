@@ -1,0 +1,251 @@
+
+
+openFunc=nil
+local path=""
+local function list()
+
+
+
+formRegister("FS")
+local x,y=term.getSize()
+
+form.add.text("FS",1,3,"| "..string.sub(path,-(x-4)))
+form.add.text("FS",Form.maxX-1,3,"|")
+form.add.multiPage("FS",1,4,Form.maxY-3,Form.maxX-1,"FS")
+
+local tAll = fs.list( path )
+local tFiles = {}
+local tDirs = {}
+
+for n, sItem in pairs( tAll ) do
+	if string.sub( sItem, 1, 1 ) ~= "." then
+		local sPath = fs.combine( path, sItem )
+		if fs.isDir( sPath ) then
+			table.insert( tDirs, sItem )
+		else
+			table.insert( tFiles, sItem )
+		end
+		
+		else
+		
+		--table.remove(tAll,n)
+	end
+	
+	
+end
+table.sort( tDirs )
+table.sort( tFiles )
+
+local function an(ar) 
+setBeckGround("nil")
+path=ar
+list() 
+end
+
+local function amm(ad)
+local function close()
+setBeckGround("nil")
+formChange("FS")
+end
+
+local function delete()
+fs.delete(ad)
+setBeckGround("nil")
+list()
+end
+local function run()
+dofile(ad)
+end
+
+local function open(arg)
+if isDialog then
+setBeckGround("nil")
+openFunc(string.gsub(arg,"\\","/"))
+else
+if findfromback(arg,".")~=false then
+register.get("formats.def."..string.sub(arg,findfromback(arg,".")+1))(arg)
+else
+register.get("formats.def.")(arg)
+end
+end
+end
+
+
+local function openW(arg)
+if findfromback(arg,".")~=false then
+register.get("formats."..string.sub(arg,findfromback(arg,".")+1))(arg)
+else
+register.get("formats.")(arg)
+end
+
+
+end
+
+local function rn(ad)
+if ad==nil then ad = "" end
+local function cancel()
+setBeckGround("nil")
+list()
+
+end
+
+local function asna()
+
+fs.move(ad,string.sub(ad,1,findfromback(ad,"\\"))..form.read.getText("FS.rn","FS.rn"))
+setBeckGround("nil")
+list()
+end
+
+setBeckGround("FS")
+
+
+
+formRegister("FS.rn")
+form.add.text("FS.rn",1,7,maoo("-"))
+form.add.text("FS.rn",1,8,maoo(" "))
+form.add.text("FS.rn",1,9,maoo(" "))
+form.add.text("FS.rn",1,10,maoo("-"))
+form.add.read("FS.rn",2,8,string.sub(ad,findfromback(ad,"\\")+1),"NAME",20,"FS.rn")
+form.add.button("FS.rn",2,9,"OK",asna,"","",28)
+form.add.button("FS.rn",9,9,"C",cancel,"","",28)
+formChange("FS.rn")
+
+
+end
+
+formRegister("FS.folder")
+if isDialog then
+form.add.multiPage("FS.folder",Form.maxX-14,4,3,14,"FS.folder")
+else
+
+form.add.multiPage("FS.folder",Form.maxX-14,4,8,14,"FS.folder")
+
+end
+if fs.isDir(ad) then
+
+form.multiPage.addButton("FS.folder","FS.folder",1,3,"GO",functionBuilder(an,{ad}),string.sub(ad,findfromback(ad,"\\")+1),"",28)
+if not isDialog then
+form.multiPage.addButton("FS.folder","FS.folder",1,5,"COPY",functionBuilder(copy,{ad}),"","",28)
+form.multiPage.addButton("FS.folder","FS.folder",1,4,"DELETE",delete,"","",28)
+form.multiPage.addButton("FS.folder","FS.folder",1,6,"CUT",functionBuilder(cut,{ad}),"","",28)
+form.multiPage.addButton("FS.folder","FS.folder",1,7,"RENAME",functionBuilder(rn,{ad}),"","",28)
+end
+form.multiPage.addButton("FS.folder","FS.folder",7,3,"C",close,"","",28)
+else
+form.multiPage.addButton("FS.folder","FS.folder",1,2,"OPEN",functionBuilder(open,{ad}),"","",28)
+if not isDialog then
+form.multiPage.addButton("FS.folder","FS.folder",1,3,"OPEN WITH",functionBuilder(openW,{ad}),"","",28)
+form.multiPage.addButton("FS.folder","FS.folder",1,5,"COPY",functionBuilder(copy,{ad}),"","",28)
+form.multiPage.addButton("FS.folder","FS.folder",1,4,"DELETE",delete,"","",28)
+form.multiPage.addButton("FS.folder","FS.folder",1,6,"CUT",functionBuilder(cut,{ad}),"","",28)
+form.multiPage.addButton("FS.folder","FS.folder",1,7,"RENAME",functionBuilder(rn,{ad}),"","",28)
+end
+form.multiPage.addButton("FS.folder","FS.folder",8,2,"C",close,"","",28)
+end
+
+setBeckGround("FS")
+formChange("FS.folder")
+
+end
+
+local function asn()
+
+if not findfromback(path,"\\") then
+
+formChange("System.mycomp")
+
+else
+
+an(string.sub(path,1,findfromback(path,"\\")-1))
+
+end
+
+
+
+end
+
+local function new()
+local function file()
+
+file = io.open(path.."\\newfile","w")
+
+file:write("")
+file:close()
+list()
+end
+
+local function folder()
+
+fs.makeDir(path.."\\newfolder")
+list()
+end
+local function paste()
+
+end
+local function annn() 
+
+formChange("FS")
+
+end
+formRegister("NEW")
+form.add.button("NEW",1,3,"FILE",file,"","",28)
+form.add.button("NEW",1,4,"FOLDER",folder,"","",28)
+
+form.add.button("NEW",1,5,"PASTE",paste,"","",28)
+form.add.button("NEW",1,6,"BACK",annn,"","",28)
+formChange("NEW")
+end
+
+for i=1,#tDirs do
+
+
+form.multiPage.addButton("FS","FS",2,2+i-1,tDirs[i],functionBuilder(amm,{path.."\\"..tDirs[i]}),"","",28)
+end
+
+for n=1,#tFiles do
+
+
+form.multiPage.addButton("FS","FS",2,#tDirs+2+n-1,tFiles[n],functionBuilder(amm,{path.."\\"..tFiles[n]}),"","",28)
+form.multiPage.addText("FS","FS",getFixLen(tFiles[n])+6,#tDirs+2+n-1,"FILE")
+end
+form.multiPage.addButton("FS","FS",2,#tDirs+#tFiles+2,"NEW",new,"","",28)
+form.multiPage.addButton("FS","FS",2,#tDirs+#tFiles+3,"BACK",asn,"","",28)
+formChange("FS")
+
+
+
+end
+
+local function HDD()
+
+path="C"
+list()
+
+end
+
+
+function MineX.fs()
+local path=""
+
+formRegister("System.mycomp")
+
+
+form.add.button("System.mycomp",1,3,"HDD [C]",HDD,"","",28)
+
+
+formChange("System.mycomp")
+-- repeat
+
+-- os.startTimer(0.7)
+-- a,b=os.pullEvent()
+-- until a=="disk" or a=="disk_eject"
+
+end
+
+function MineX.openDialog(path1,func)
+openFunc=func
+path=path1 or ""
+isDialog=true
+list()
+
+end

@@ -1,0 +1,201 @@
+function pagePrint(arg,asSelected)
+term.setCursorPos(arg[1],arg[2])
+write("+")
+for i=1,arg[3]-2 do write("-") end
+write("+")
+term.setCursorPos(arg[1],arg[2]+arg[4]-1)
+write("+")
+for i=1,arg[3]-2 do write("-") end
+write("+")
+for i=arg[2]+1,arg[4]+arg[2]-2 do 
+term.setCursorPos(arg[1],i)
+if asSelected then write(">") else write("|") end
+term.setCursorPos(arg[1]+arg[3]-1,i)
+if asSelected then write("<") else write("|") end
+end
+local v=1
+for i,text in pairs(arg["strings"]) do
+if i >= arg[6] and i < arg[7]-1 then
+term.setCursorPos(arg[1]+1,arg[2]+v)
+write(text)
+v=v+1
+end
+end
+end
+
+function pageAdd(x,y,lenX,lenY,index)
+local drop={x,y,lenX,lenY,index,1,lenY,lenY}
+drop["strings"]={}
+return drop
+end
+
+function pageAddString(arg,index,strings)
+for i=1,#arg do
+if arg[i][5]==index then
+local s=#arg[i]["strings"]+1
+arg[i]["strings"][s]=strings
+arg[i][8]=s+2
+return arg
+end
+end
+end
+
+function pageClear(arg,index)
+for i=1,#arg do
+if arg[i][5]==index then
+arg[i]["strings"]={}
+arg[i][8]=arg[i][4]
+return arg
+end
+end
+end
+
+function pageUpdate(ev,key,arg)
+if ev=="key" then
+if key==201 then
+if arg[6]>1 then 
+arg[6]=arg[6]-1 
+arg[7]=arg[7]-1 
+end
+elseif key==209 then
+if arg[7]<arg[8] then 
+arg[6]=arg[6]+1 
+arg[7]=arg[7]+1 
+end
+end
+end
+end
+
+function sReadEventUpdate(ev,key,arg)
+if ev=="key" and key == 14 then
+local asRus = false
+local pwd = arg[3]
+for i=1,#ruFixData do
+if string.sub(pwd,#pwd,#pwd)==ruFixData[i] then
+asRus = true
+end
+end
+if not asRus then
+arg[3] = string.sub(pwd,1,#pwd-2)
+else
+asRus=false
+arg[3] = string.sub(pwd,1,#pwd-1)
+end
+elseif ev=="char" then
+if getFixLen(arg[3]) < arg[5] then
+arg[3] = arg[3]..key
+end
+elseif ev=="key" and key == 28 then
+addFunctionToRun(arg[7])
+end
+end
+
+function sReadAdd(x,y,text,msg,maxLen,func,index)
+if type(func)~="function" then error("Error #011:Исполняемый код не обнаружен") end
+if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
+if text==nil then text="" elseif msg==nil then msg="" end
+if type(maxLen)~="number" then maxLen=999 end
+return {x,y,text,msg,maxLen,index,func}
+end
+
+function numReadEventUpdate(ev,key,arg)
+if ev=="key" and key == 14 then
+arg[3] = string.sub(arg[3],1,#arg[3]-1)
+elseif ev=="char" and (key=="0" or key=="1" or key=="2" or key=="3" or key=="4" or key=="5" or key=="6" or key=="7" or key=="8" or key=="9") then
+if getFixLen(arg[3]) < arg[5] then
+arg[3] = arg[3]..key
+end
+end
+end
+
+function readSetText(arg,index,param)
+for i=1,#arg do
+if arg[i][6]==index then
+arg[i][3]=param
+return arg
+end
+end
+end
+
+function editAdd(x,y,sym,fir,sek,s,d,b)
+if sym==nil or sym=="" then return end
+return {x,y,sym,fir,sek,s,d,b}
+end
+
+function editPrint(arg)
+term.setCursorPos(arg[1],arg[2])
+write(arg[3])
+end
+
+function editEventUpdate(ev,key,arg)
+if ev=="char" then
+rebuild(arg[4]..arg[3]..key..arg[5])
+selectorChenge(arg[1],arg[2],"right")
+end
+if ev=="key" and key==14 then
+rebuild(arg[4]..arg[5])
+selectorChenge(arg[1],arg[2],"left")
+end
+if ev=="key" and key==211 then
+rebuild(arg[4]..arg[7]..string.sub(arg[5],2))
+selectorChenge(arg[1]-1,arg[2],"right")
+end
+if ev=="key" and key==28 then
+rebuild(arg[4]..arg[3].."\n"..arg[5])
+selectorChenge(0,arg[2],"down")
+end
+local x,y=term.getSize()
+if ev=="key" and key==209 and arg[8]>fir+y-5 then
+fir=fir+1
+rebuild(lastText)
+selectorChenge(arg[1],arg[2],"up")
+elseif ev=="key" and key==201 and fir > 2 then
+fir=fir-1
+rebuild(lastText)
+selectorChenge(arg[1],arg[2],"down")
+end
+end
+
+function editSpecial(arg)
+term.setCursorPos(arg[1]+1,arg[2])
+term.setCursorBlink(true)
+end
+
+function specEditEventUpdate(ev,key,arg)
+if ev=="key" and key==211 then
+rebuild(arg[4]..string.sub(arg[5],2))
+selectorChenge(1,arg[2],"left")
+end
+if ev=="key" and key==14 then
+rebuild(string.sub(arg[4],1,#arg[4]-1)..arg[5])
+selectorChenge(arg[6]+1,arg[2]-1,"left")
+end
+if ev=="char" then
+rebuild(arg[4]..key..arg[5])
+selectorChenge(arg[1],arg[2],"right")
+end
+if ev=="key" and key==28 then
+rebuild(arg[4].."\n"..arg[5])
+selectorChenge(0,arg[2],"down")
+end
+local x,y=term.getSize()
+if ev=="key" and key==209 and arg[8]>fir+y-5 then
+fir=fir+1
+rebuild(lastText)
+selectorChenge(arg[1],arg[2],"up")
+elseif ev=="key" and key==201 and fir > 2 then
+fir=fir-1
+rebuild(lastText)
+selectorChenge(arg[1],arg[2],"down")
+end
+end
+
+addComponent("numbRead","selected",readPrint,readAdd,numReadEventUpdate,readSpecial,{readGetText},{"getText"})
+
+addComponent("editFrame","selected",editPrint,editAdd,editEventUpdate,editSpecial)
+
+addComponent("editSpecFrame","selected",editPrint,editAdd,specEditEventUpdate,editSpecial)
+
+addComponent("specRead","selected",readPrint,sReadAdd,sReadEventUpdate,readSpecial,{readGetText,readSetText},{"getText","setText"})
+
+addComponent("mineWebPage","selected",pagePrint,pageAdd,pageUpdate,nil,{pageAddString,pageClear},{"addString","clear"})
