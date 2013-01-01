@@ -62,7 +62,7 @@ if id == nil then
 form.mineWebPage.addString("homePage","page","Remote host not responded")
 elseif servId==id then
 if string.sub(pageText,1,5) == "FILE:" then
-file = io.open(page,"w")
+file = io.open("C\\"..page,"w")
 file:write(string.sub(pageText,6))
 file:close()
 form.mineWebPage.addString("homePage","page","Download sucssesfuly!")
@@ -187,16 +187,16 @@ end
 function main2(arg)
 mineWeb={}
 function load()
-if not fs.exists(".save") then
-file = io.open(".save", "w")
+if not fs.exists("MWDS.save") then
+file = io.open("MWDS.save", "w")
 file:write("mineWeb.bans={\"\"} \n mineWeb.site={\"\"} \n mineWeb.ids={\"\"}")
 file:close()
 end
-dofile(".save")
+dofile("MWDS.save")
 end
 
 function save()
-file = io.open(".save", "w")
+file = io.open("MWDS.save", "w")
 file:write("mineWeb.bans={\"\"")
 for i=2,#mineWeb.bans do
 if mineWeb.bans[i]~="" then
@@ -380,32 +380,32 @@ end
 function main3(arg)
 mineWeb={}
 function load()
-if not fs.exists("pages") then
-fs.makeDir("pages")
+if not fs.exists("C\\pages") then
+fs.makeDir("C\\pages")
 end
-if not fs.exists("pages\\404") then
-file = io.open("pages\\404.php", "w")
+if not fs.exists("C\\pages\\404") then
+file = io.open("C\\pages\\404", "w")
 file:write("Error 404 \nPage not found")
 file:close()
 end
-if not fs.exists("pages\\index.php") then
-file = io.open("pages\\index.php", "w")
-file:write("Site startup page")
+if not fs.exists("C\\pages\\main") then
+file = io.open("C\\pages\\main", "w")
+file:write("Site main page")
 file:close()
 end
-if not fs.exists("files") then
-fs.makeDir("files")
+if not fs.exists("C\\files") then
+fs.makeDir("C\\files")
 end
-if not fs.exists(".save") then
-file = io.open(".save", "w")
+if not fs.exists("MWWS.save") then
+file = io.open("MWWS.save", "w")
 file:write("mineWeb.bans={\"\"} \n mineWeb.site={\"\"} \n mineWeb.ids={\"\"}")
 file:close()
 end
-dofile(".save")
+dofile("MWWS.save")
 end
 
 function save()
-file = io.open(".save", "w")
+file = io.open("MWWS.save", "w")
 file:write("mineWeb.bans={\"\"")
 for i=2,#mineWeb.bans do
 if mineWeb.bans[i]~="" then
@@ -604,16 +604,16 @@ end
 function main4(arg)
 mineWeb={}
 function load()
-if not fs.exists(".save") then
-file = io.open(".save", "w")
+if not fs.exists("MWCS.save") then
+file = io.open("MWCS.save", "w")
 file:write("mineWeb.bans={\"\"}")
 file:close()
 end
-dofile(".save")
+dofile("MWCS.save")
 end
 
 function save()
-file = io.open(".save", "w")
+file = io.open("MWCS.save", "w")
 file:write("mineWeb.bans={\"\"")
 for i=2,#mineWeb.bans do
 if mineWeb.bans[i]~="" then
