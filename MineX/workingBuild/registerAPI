@@ -1,0 +1,45 @@
+register={}
+register.path="RegDumpFile"
+register.keys={}
+
+function register.new(key,variable)
+register.edit(key,variable)
+end
+
+function register.edit(key,variable)
+if key == nil or variable==nil then error("Attempt to use nil argument") end
+file=io.open(register.path,"a")
+if string.sub(variable,1,8)=="function" then
+file:write("\nregister.keys[\""..key.."\"]="..variable)
+else
+file:write("\nregister.keys[\""..key.."\"]=\""..variable.."\"")
+end
+file:close()
+register.keys[key]=variable
+end
+
+function register.load()
+if fs.exists(register.path) then
+dofile(register.path)
+else
+
+file=io.open(register.path,"w")
+file:write("\n")
+file:close()
+end
+end
+
+function register.delete(key)
+if key == nil then error("Attempt to use nil argument") end
+file=io.open(register.path,"a")
+file:write("\nregister.keys[\""..key.."\"]=nil")
+file:close()
+register.keys[key]=nil
+end
+
+function register.get(key)
+return register.keys[key]
+end
+
+register.load()
+-- print(register.get("ololo"))

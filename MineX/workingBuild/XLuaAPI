@@ -1,0 +1,25 @@
+mass["API"]={}
+mass["API"]["components"]={}
+form={}
+form.add={}
+
+function addComponent(compName,compType,funcPrint,funcAddComp,eventUpdate,specialFunc,additionalFunctions,additionalFunctionsName,funcSelectorFir,funcSelectorSek)
+mass["API"]["components"][#mass["API"]["components"]+1]={compName,compType,funcPrint,funcAddComp,eventUpdate,specialFunc,additionalFunctions,additionalFunctionsName,funcSelectorFir,funcSelectorSek}
+form.add[compName]=function(formName,...) 
+if formName==nil then error("Error #254:Название формы не может быть пустым") end
+if mass[appIndef]["appForms"][formName]==nil then error("Error #232:Форма не существует") end
+mass[appIndef]["appForms"][formName]["FormObjects"][compType][compName][#mass[appIndef]["appForms"][formName]["FormObjects"][compType][compName]+1] = funcAddComp(...) 
+end
+if additionalFunctions~=nil and additionalFunctionsName~=nil then
+form[compName]={}
+for i=1,#additionalFunctions do
+form[compName][additionalFunctionsName[i]]=function(formName,...)
+if formName==nil then error("Error #254:Название формы не может быть пустым") end
+if mass[appIndef]["appForms"][formName]==nil then error("Error #232:Форма не существует") end
+arg, a1,a2,a3,a4,a5 = additionalFunctions[i](mass[appIndef]["appForms"][formName]["FormObjects"][compType][compName],...)
+if arg~=nil then mass[appIndef]["appForms"][formName]["FormObjects"][compType][compName]=arg end
+return a1,a2,a3,a4,a5 
+end
+end
+end
+end

@@ -1,0 +1,608 @@
+mass = {}
+mass["multiTaskSupport"]={}
+mass["paralelRun"]={}
+tFilters = {}
+prSelMod = false
+
+function stringToTable(str)
+str=str.."\n"
+local drop={}
+local pos=1
+local sPos
+local mPos=1
+while true do
+sPos=string.find(str,"\n",pos)
+if not sPos then break end
+drop[mPos]=string.sub(str,pos,sPos-1).." "
+pos=sPos+1
+mPos=mPos+1
+end
+return drop
+end
+
+function setFocusToSystem()
+appIndef=mass["multiTaskSupport"][1][2]
+formsUpdate()
+end
+
+function getPointDistance(x1,y1,x2,y2)
+local xx, yy, sum
+xx = x1 - x2
+yy = y1 - y2
+xx = xx*xx
+yy = yy*yy
+sum = xx + yy
+sum = math.sqrt (sum)
+return sum
+end
+
+function MineXRuner()
+local event, p1, p2, p3, p4, p5
+local function timeBar()
+while true do
+if not prSelMod then
+local ok, param = coroutine.resume(coroutine.create(function() printBackGround(mass[appIndef]["backGroundForm"]) printAllComponent(mass[appIndef]["actualForm"]) end))
+else
+term.setCursorPos(1,1)
+local drop = "Time "..textutils.formatTime(os.time(),true)
+if #drop==10 then
+write(drop)
+else
+write(drop.." ")
+end
+end
+sleep(0.3)
+end
+end
+addFunctionToRun(timeBar,nil,"timeBar")
+while true do
+if event == "terminate" and appIndef ~= mass["multiTaskSupport"][1][2] then
+formRegister("terminate")
+local xx,yy = term.getSize()
+local x = (xx-18)/2
+form.add.text("terminate",x,yy/2,"Program terminated")
+form.add.button("terminate",(xx-6)/2,yy/2+1,"OK",programStop,"",nil,28)
+setBeckGround("nil")
+formChange("terminate")
+event = nil
+end
+
+if event == "key" and p1 == 15 then
+prSelMod=true
+term.setCursorPos(1,2)
+x,y = term.getSize()
+for i=1,x-1 do write("-") end
+bts = {}
+term.setCursorBlink(false)
+for i=1,#mass["multiTaskSupport"] do
+bts[i] = mass["multiTaskSupport"][i][1]
+end
+local len=#bts*4
+for i=1,#bts do len=len+#bts[i] end
+for i=1,#mass["multiTaskSupport"] do
+sel=1
+if mass["multiTaskSupport"][i][2]==appIndef then
+appSel = i
+sel=i
+break
+end
+end
+local i,event,key,xx,yy
+xx,yy=term.getSize()
+x=(xx-len+2)/2
+y=yy/2
+term.setCursorPos(1,yy/2-2)
+term.clearLine()
+for i=1,xx-1 do
+write("-")
+end
+term.setCursorPos(1,yy/2+1)
+term.clearLine()
+for i=1,xx-1 do
+write("-")
+end
+term.setCursorPos((xx-14+2)/2,yy/2-1)
+term.clearLine()
+write("Select program")
+term.setCursorPos(x,y)
+term.clearLine()
+for i=1,#bts do if i==sel then term.write(">["..bts[i].."]<") else term.write(" ["..bts[i].."] ") end end
+while true do
+event,key=os.pullEventRaw()
+for n=1,#mass["paralelRun"] do
+local r = mass["paralelRun"][n]["tread"]
+if (tFilters[r] == nil or tFilters[r] == event) and event ~= "terminate" and mass["paralelRun"][n]["active"] then local ok, filter, param = coroutine.resume( r, event, key) checkingTasks(n, ok, filter, param) end
+if coroutine.status(r) == "dead" and mass["paralelRun"][n]["state"] ~= "error" then
+mass["paralelRun"][n]["active"]=false
+mass["paralelRun"][n]["state"]="finish"
+end
+end
+term.setCursorPos(x,y)
+term.clearLine()
+for i=1,#bts do if i==sel then term.write(">["..bts[i].."]<") else term.write(" ["..bts[i].."] ") end end
+if key==203 and sel>1 then sel=sel-1
+elseif key==205 and sel<#bts then sel=sel+1
+elseif key==28 then break
+elseif key==15 then sel=appSel break end
+end
+appIndef = mass["multiTaskSupport"][sel][2]
+event = nil
+prSelMod=false
+end
+
+if event == "char" or event == "key" then
+local ok, param = coroutine.resume( coroutine.create(selectorUpdate), event, p1, p2, p3, p4, p5 )
+if not ok then fail(param) end
+end
+
+for n=1,#mass["paralelRun"] do
+local r = mass["paralelRun"][n]["tread"]
+if (tFilters[r] == nil or tFilters[r] == event) and event ~= "terminate" and mass["paralelRun"][n]["active"] then
+local ok, filter, param = coroutine.resume( r, event, p1, p2, p3, p4, p5 )
+checkingTasks(n, ok, filter, param)
+end
+if coroutine.status(r) == "dead" and mass["paralelRun"][n]["state"] ~= "error" then
+mass["paralelRun"][n]["active"]=false
+mass["paralelRun"][n]["state"]="finish"
+end
+end
+event, p1, p2, p3, p4, p5 = os.pullEventRaw()
+if event=="update" then event=nil end
+end
+end
+
+function getFunctionState(index)
+for i=1,#mass["paralelRun"] do
+if mass["paralelRun"][i]["index"]==index and mass["paralelRun"][i]["appIndef"]==appIndef then
+return mass["paralelRun"][i]["state"], mass["paralelRun"][i]["fail"]
+end
+end
+end
+
+function checkingTasks(n, ok, filter, param)
+if ok then
+if filter=="return" then
+mass["paralelRun"][n]["output"] = param
+local ok, filter, param = coroutine.resume(mass["paralelRun"][n]["tread"])
+checkingTasks(n, ok, filter, param)
+elseif filter=="read" then
+local ok, filter, param = coroutine.resume(mass["paralelRun"][n]["tread"], "read", mass["paralelRun"][n]["input"])
+mass["paralelRun"][n]["input"]=nil
+checkingTasks(n, ok, filter, param)
+else
+tFilters[mass["paralelRun"][n]["tread"]] = filter
+end
+else
+x,y = term.getSize()
+formRegister("error")
+form.add.text("error",(x-36)/2,y/2-1,"В потоке приложения возникла ошибка:")
+form.add.text("error",(x-#filter)/2,y/2,"\""..filter.."\"")
+form.add.button("error",x/2-2,y/2+1,"Back",function() formChange(s) end)
+s=getActualForm()
+formChange("error")
+mass["paralelRun"][n]["active"]=false
+mass["paralelRun"][n]["state"]="error"
+mass["paralelRun"][n]["fail"]=filter
+end
+end
+
+function inputArg(arg,index)
+for i=1,#mass["paralelRun"] do
+if mass["paralelRun"][i]["index"]==index and mass["paralelRun"][i]["appIndef"]==appIndef then
+mass["paralelRun"][#mass["paralelRun"]]["input"] = arg
+return
+end
+end
+end
+
+function getArg(index)
+for i=1,#mass["paralelRun"] do
+if mass["paralelRun"][i]["index"]==index and mass["paralelRun"][i]["appIndef"]==appIndef then
+local drop = mass["paralelRun"][i]["output"]
+mass["paralelRun"][i]["output"]=nil
+return drop
+end
+end
+end
+
+function returnArg(arg)
+os.queueEvent("update")
+coroutine.yield("return",arg)
+end
+
+function readArg()
+while true do
+os.queueEvent("update")
+local a,b = coroutine.yield("read")
+if a=="read" then
+return b
+end
+end
+end
+
+function formRegister(formName)
+mass[appIndef]["appForms"][formName]={}
+mass[appIndef]["appForms"][formName]["FormObjects"]={}
+mass[appIndef]["appForms"][formName]["FormObjects"]["selected"]={}
+mass[appIndef]["appForms"][formName]["FormObjects"]["noselected"]={}
+mass[appIndef]["appForms"][formName]["FormObjects"]["special"]={}
+for n=1, #mass["API"]["components"] do
+name=mass["API"]["components"][n][1]
+cType=mass["API"]["components"][n][2]
+mass[appIndef]["appForms"][formName]["FormObjects"][cType][name]={}
+end
+local x,y = term.getSize()
+if appIndef ~= mass["multiTaskSupport"][1][2] then
+form.add.button(formName,x-5,1,"X",programStop,"","",28)
+if formName~="System.start" then
+form.add.button(formName,x-13,1,"START",function() startMenu(fromName) end,"","",28)
+end
+end
+local drop=""
+for i=1,x-1 do drop=drop.."-" end
+form.add.text(formName,1,2,drop,"")
+form.add.text(formName,11,1,"|","")
+form.add.text(formName,1,1,function() return "Time "..textutils.formatTime(os.time(),true) end,"")
+end
+
+function addFunctionToRun(sFunc,arg,index)
+if type(sFunc)~="function" then error("Error #062:Исполняемый код не обнаружен") end
+func = function() 
+local sAppI=appIndef
+drop=getfenv(sFunc)
+drop.sAppI=sAppI
+f = setfenv(sFunc,drop)
+f()
+end
+mass["paralelRun"][#mass["paralelRun"]+1]={}
+mass["paralelRun"][#mass["paralelRun"]]["tread"]=coroutine.create (func)
+mass["paralelRun"][#mass["paralelRun"]]["appIndef"]=appIndef
+mass["paralelRun"][#mass["paralelRun"]]["arg"]=arg
+mass["paralelRun"][#mass["paralelRun"]]["index"]=index
+local ok, param = coroutine.resume(mass["paralelRun"][#mass["paralelRun"]]["tread"],arg)
+if ok then
+mass["paralelRun"][#mass["paralelRun"]]["input"]=nil
+mass["paralelRun"][#mass["paralelRun"]]["output"]=param
+mass["paralelRun"][#mass["paralelRun"]]["active"]=true
+mass["paralelRun"][#mass["paralelRun"]]["state"]="run"
+if coroutine.status(mass["paralelRun"][#mass["paralelRun"]]["tread"]) == "dead" then
+mass["paralelRun"][#mass["paralelRun"]]["active"]=false
+mass["paralelRun"][#mass["paralelRun"]]["state"]="finish"
+end
+else
+x,y = term.getSize()
+formRegister("error")
+form.add.text("error",(x-36)/2,y/2-1,"В потоке приложения возникла ошибка:")
+form.add.text("error",(x-#param)/2,y/2,"\""..param.."\"")
+form.add.button("error",x/2-2,y/2+1,"Back",function() formChange(s) end)
+s=getActualForm()
+formChange("error")
+mass["paralelRun"][#mass["paralelRun"]]["active"]=false
+mass["paralelRun"][#mass["paralelRun"]]["state"]="error"
+mass["paralelRun"][#mass["paralelRun"]]["fail"]=param
+end
+end
+
+function getSelector(x,y,findAs)
+local formName = mass[appIndef]["actualForm"]
+local drop = {}
+local len, _len, index, func
+local function up(x,y,comp) if y > comp then return true else return false end end
+local function left(x,y,comp,compB) if x > compB then return true else return false end end
+local function right(x,y,comp,compB) if x < compB then return true else return false end end
+local function down(x,y,comp) if y < comp then return true else return false end end
+if findAs == "up" then func = up elseif findAs == "left" then func = left elseif findAs == "right" then func = right elseif findAs == "down" then func = down end
+for n=1, #mass["API"]["components"] do
+name=mass["API"]["components"][n][1]
+cType=mass["API"]["components"][n][2]
+if cType=="selected" then
+for i=1,#mass[appIndef]["appForms"][formName]["FormObjects"]["selected"][name] do
+if func(x,y,mass[appIndef]["appForms"][formName]["FormObjects"]["selected"][name][i][2],mass[appIndef]["appForms"][formName]["FormObjects"]["selected"][name][i][1]) then
+local x = mass[appIndef]["appForms"][formName]["FormObjects"]["selected"][name][i][1]
+local y = mass[appIndef]["appForms"][formName]["FormObjects"]["selected"][name][i][2]
+drop[#drop+1] = {x,y,i,name,nil,1}
+end
+end
+elseif cType=="special" and mass["API"]["components"][n][9]~=nil then
+for i=1,#mass[appIndef]["appForms"][formName]["FormObjects"]["special"][name] do
+sDrop = mass["API"]["components"][n][9](func,mass[appIndef]["appForms"][formName]["FormObjects"]["special"][name][i],x,y)
+if sDrop~=nil then
+num = i
+for i=1,#sDrop do
+drop[#drop+1]=sDrop[i]
+drop[#drop][5]=name
+drop[#drop][6]=num
+end
+end
+end
+end
+end
+len = 9999999999
+index = 1
+for i=1,#drop do
+_len = getPointDistance(x,y,drop[i][1],drop[i][2])
+if _len < len then
+len = _len
+index = i
+end
+end
+if drop[index]==nil then
+if mass[appIndef]["selector"]["type"] == nil then
+mass[appIndef]["selector"]["type"]=nil
+mass[appIndef]["selector"]["index"]=1
+mass[appIndef]["selector"]["special"]=nil
+mass[appIndef]["selector"]["specialIndex"]=1
+end
+return mass[appIndef]["selector"]["index"],mass[appIndef]["selector"]["type"],mass[appIndef]["selector"]["special"],mass[appIndef]["selector"]["specialIndex"]
+else
+return drop[index][3], drop[index][4], drop[index][5], drop[index][6]
+end
+end
+
+function formChange(formName)
+if formName==nil then error("Название формы не может быть пустым") end
+if mass[appIndef]["appForms"][formName]==nil then error("Форма не существует") end
+mass[appIndef]["selector"]["type"]=nil
+mass[appIndef]["selector"]["index"]=nil
+mass[appIndef]["actualForm"]=formName
+selectorChenge(0,0,"down")
+formsUpdate()
+end
+
+function setBeckGround(form)
+if mass[appIndef]["appForms"][form]==nil and form~=nil then error("Форма "..form.." не существует") end
+mass[appIndef]["backGroundForm"]=form
+end
+
+function addProgramHelp(appHelp)
+mass[appIndef]["appHelp"]=appHelp
+end
+
+function addProgramRegister(appRegister)
+mass[appIndef]["appRegister"]=appRegister
+end
+
+function printBackGround(formName)
+term.setCursorBlink(false)
+term.clear()
+if formName==nil then return end
+for n=1, #mass["API"]["components"] do
+name=mass["API"]["components"][n][1]
+cType=mass["API"]["components"][n][2]
+for i=1,#mass[appIndef]["appForms"][formName]["FormObjects"][cType][name] do
+mass["API"]["components"][n][3](mass[appIndef]["appForms"][formName]["FormObjects"][cType][name][i])
+end
+end
+end
+
+function printAllComponent(formName)
+for n=1, #mass["API"]["components"] do
+name=mass["API"]["components"][n][1]
+cType=mass["API"]["components"][n][2]
+for i=1,#mass[appIndef]["appForms"][formName]["FormObjects"][cType][name] do
+if cType=="special" then
+if mass[appIndef]["selector"]["special"] == name and mass[appIndef]["selector"]["specialIndex"]==i then
+mass["API"]["components"][n][3](mass[appIndef]["appForms"][formName]["FormObjects"][cType][name][i],mass[appIndef]["selector"],true)
+else
+mass["API"]["components"][n][3](mass[appIndef]["appForms"][formName]["FormObjects"][cType][name][i],mass[appIndef]["selector"],false)
+end
+elseif mass[appIndef]["selector"]["special"] == nil and mass[appIndef]["selector"]["type"] == name and mass[appIndef]["selector"]["index"] == i then
+mass["API"]["components"][n][3](mass[appIndef]["appForms"][formName]["FormObjects"][cType][name][i],true)
+else
+mass["API"]["components"][n][3](mass[appIndef]["appForms"][formName]["FormObjects"][cType][name][i],false)
+end
+end
+end
+for n=1, #mass["API"]["components"] do
+name=mass["API"]["components"][n][1]
+cType=mass["API"]["components"][n][2]
+if mass["API"]["components"][n][6]~=nil then
+if cType=="special" then
+if mass[appIndef]["selector"]["special"] == name and mass[appIndef]["selector"]["specialIndex"]==i then
+mass["API"]["components"][n][6](mass[appIndef]["appForms"][formName]["FormObjects"][cType][name][mass[appIndef]["selector"]["specialIndex"]],mass[appIndef]["selector"])
+end
+elseif cType=="selected" and mass[appIndef]["selector"]["special"] == nil and mass[appIndef]["selector"]["type"]==name then
+mass["API"]["components"][n][6](mass[appIndef]["appForms"][formName]["FormObjects"][cType][name][mass[appIndef]["selector"]["index"]])
+end
+end
+end
+end
+
+function fail(param)
+if appIndef ~= mass["multiTaskSupport"][1][2] then
+formRegister("error")
+if param==nil then param="Unknown error:Невозможно определить ошибку" end
+local xx,yy = term.getSize()
+local msg = "Программа завершила работу с ошибкой:"
+local x = (xx-getFixLen(msg))/2
+local msg2 = "\""..param.."\""
+local x2 = (xx-getFixLen(msg2))/2
+form.add.text("error",x,yy/2,msg)
+form.add.text("error",x2,yy/2+1,msg2)
+form.add.button("error",(xx-6)/2,yy/2+2,"OK",programStop,"",nil,28)
+setBeckGround("nil")
+formChange("error")
+else
+dofile("error")
+end
+end
+
+function GrapicInit()
+mass[appIndef]["appForms"]={}
+mass[appIndef]["selector"]={}
+mass[appIndef]["selector"]["type"]=nil
+mass[appIndef]["selector"]["index"]=1
+mass[appIndef]["selector"]["special"]=nil
+mass[appIndef]["selector"]["specialIndex"]=1
+mass[appIndef]["actualForm"]=""
+mass[appIndef]["backGroundForm"]=""
+formRegister("nil")
+setBeckGround("nil")
+formChange("nil")
+end
+
+function eventProcessing(ev, key, p2, p3, p4, p5)
+for n=1, #mass["API"]["components"] do
+name=mass["API"]["components"][n][1]
+cType=mass["API"]["components"][n][2]
+for i=1,#mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"][cType][name] do
+local a = nil
+if mass["API"]["components"][n][5]~=nil then
+if cType=="special" then
+if mass[appIndef]["selector"]["special"] == name and mass[appIndef]["selector"]["specialIndex"]==i then
+a = mass["API"]["components"][n][5](ev, key, mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"][cType][name][i], mass[appIndef]["selector"])
+if a ~= nil then mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"][cType][name][i] = a end
+return
+end
+elseif mass[appIndef]["selector"]["special"] == nil and mass[appIndef]["selector"]["type"] == name and mass[appIndef]["selector"]["index"] == i then
+a = mass["API"]["components"][n][5](ev, key, mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"][cType][name][i])
+if a ~= nil then mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"][cType][name][i] = a end
+return
+end
+end
+end
+end
+end
+
+function selectorUpdate(ev, key, p2, p3, p4, p5)
+term.setCursorBlink(false)
+if prSelMod then return end
+x,y=0,0
+eventProcessing(ev, key, p2, p3, p4, p5)
+if ev=="key" and (key==200 or key==203 or key==205 or key==208) then
+if mass[appIndef]["selector"]["type"] == nil then
+x = 0
+y = 0
+elseif mass[appIndef]["selector"]["special"] ~= nil then
+for n=1, #mass["API"]["components"] do 
+if mass["API"]["components"][n][1]==mass[appIndef]["selector"]["special"] then 
+x,y = mass["API"]["components"][n][10](mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"]["special"][mass["API"]["components"][n][1]][mass[appIndef]["selector"]["specialIndex"]],mass[appIndef]["selector"]) 
+end 
+end
+else
+x = mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"]["selected"][mass[appIndef]["selector"]["type"]][mass[appIndef]["selector"]["index"]][1]
+y = mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"]["selected"][mass[appIndef]["selector"]["type"]][mass[appIndef]["selector"]["index"]][2]
+end
+if key==200 then
+selectorChenge(x,y,"up")
+elseif key==203 then
+selectorChenge(x,y,"left")
+elseif key==205 then
+selectorChenge(x,y,"right")
+elseif key==208 then
+selectorChenge(x,y,"down")
+end
+end
+printBackGround(mass[appIndef]["backGroundForm"])
+printAllComponent(mass[appIndef]["actualForm"])
+end
+
+function programStop()
+if appIndef ~= mass["multiTaskSupport"][1][2] then
+for n=1,#mass["paralelRun"] do
+if appIndef==mass["paralelRun"][n]["appIndef"] then
+mass["paralelRun"][n]["active"]=false
+end
+end
+appSel = nil
+for i=2, #mass["multiTaskSupport"] do
+if mass["multiTaskSupport"][i][2] == appIndef then
+appSel = i
+break
+end
+end
+if appSel==nil then return end
+appIndef = mass["multiTaskSupport"][appSel-1][2]
+table.remove (mass["multiTaskSupport"], appSel)
+end
+formsUpdate()
+end
+
+function MineXLuaProgramRun(main,appName,arguments)
+mass[appIndef]={}
+mass[appIndef]["appName"]=appName
+mass[appIndef]["main"]=main
+GrapicInit()
+if type(main)~="function" then error("Error #011:Исполняемый код не обнаружен") end
+main()
+end
+
+function MineXLuaInit(prog,appName)
+arguments={}
+
+appIndef = getAppIndef()
+programNumber = #mass["multiTaskSupport"]+1
+mass["multiTaskSupport"][programNumber]={appName,appIndef,coroutine.create (MineXLuaProgramRun)}
+ok, param = coroutine.resume (mass["multiTaskSupport"][programNumber][3],prog,appName,arguments)
+if not ok then
+fail(param)
+end
+formsUpdate()
+end
+
+function getAppIndef()
+rand = math.random (1000000000,9999999999)
+for i=1,#mass["multiTaskSupport"] do
+if mass["multiTaskSupport"][i][2] == rand then
+rand = getAppIndef()
+break
+end
+end
+return rand
+end
+
+function selectorChenge(x,y,to)
+index, seltype, special, sIndex = getSelector(x,y,to)
+mass[appIndef]["selector"]["type"]=seltype
+mass[appIndef]["selector"]["index"]=index
+mass[appIndef]["selector"]["special"] = special
+mass[appIndef]["selector"]["specialIndex"] = sIndex
+end
+
+function formsUpdate()
+local ok, param = coroutine.resume(coroutine.create(selectorUpdate))
+if not ok then
+fail(param)
+end
+end
+
+function getBeckGround()
+return mass[appIndef]["backGroundForm"]
+end
+
+function getActualForm()
+return mass[appIndef]["actualForm"]
+end
+
+function startMenu()
+local vBack = getBeckGround()
+local vAct = getActualForm()
+local function fs()
+MineXLuaInit(MineX.fs,"FS")
+end
+local function cp()
+MineXLuaInit(MineX.cp,"CP")
+end
+local function back() 
+setBeckGround(vBack)
+formChange(vAct)
+end
+
+-- users[1][1]
+x,y=term.getSize()
+formRegister("System.start")
+form.add.multiPage("System.start",x-20,3,7,20,"System.start")
+form.multiPage.addText("System.start","System.start",2,2,"глянь в код 571 с")
+form.multiPage.addButton("System.start","System.start",1,3,"MY COMPUTER",fs,"","",28)
+form.multiPage.addButton("System.start","System.start",1,4,"CONTROL PANEL",cp,"","",28)
+form.multiPage.addButton("System.start","System.start",1,5,"SHUTDOWN",function() MineX.shutdownMenu(vAct,vBack) end,"","",28)
+form.multiPage.addButton("System.start","System.start",1,6,"CLOSE",back,"","",28)
+setBeckGround(vAct)
+
+formChange("System.start")
+
+end
+
+
+
+
