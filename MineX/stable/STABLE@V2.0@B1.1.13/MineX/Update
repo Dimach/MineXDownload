@@ -107,16 +107,16 @@ local function UpdateFounder()
 local updateFound=false
 
 while true do
-
-	local response = http.get(
+	response = http.get(
 		config.host.."/version.txt"
 		)
+		if response then
 	if config.ver ~= response.readAll() then
 	updateFound=true
 	end
 
 		response.close()
-		
+		end
 
 if updateFound then 
 
@@ -124,7 +124,7 @@ if updateFound then
 break
 end
 
-sleep(1)
+sleep(600)
 end
 MineXLuaInit(Update,"Update")
 
