@@ -35,8 +35,6 @@ end
 end
 end
 
-
-
 function getSiteId(url)
 rednet.send(dnsId, url)
 id, servId = rednet.receive(10)
