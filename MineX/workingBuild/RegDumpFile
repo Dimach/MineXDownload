@@ -1,7 +1,0 @@
-
-
-register.keys["config.host"]="http://industrialserver.ru/MineX"
-register.keys["config.ver"]="MineXGU12"
-register.keys["MineX.lp"]="eu"
-register.keys["formats.def."]=function(arg) dofile(arg) end
-register.keys["formats."]=function(arg) dofile("MineX/Edit") startEditing(arg) end

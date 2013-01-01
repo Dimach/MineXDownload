@@ -1,3 +1,0 @@
-
-sleep(1)
-os.pullEvent("key")
