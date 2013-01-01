@@ -23,7 +23,7 @@ register.new("config.host","https://raw.github.com/Dimach/MineXDownload/master/M
 
 end
 if register.get("config.ver")==nil then
-register.new("config.ver","MineXGU12")
+register.new("config.ver","STABLE@V2.0@B1.1.13")
 
 end
 if register.get("MineX.lp")==nil then
