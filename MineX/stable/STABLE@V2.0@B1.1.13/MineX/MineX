@@ -1,4 +1,4 @@
-MineX={}
+
 
 MineX.version="MineX Global Update First Relased Version Lite"
 
@@ -19,11 +19,11 @@ return function() func(unpack(arg)) end
 end
 
 if register.get("config.ver")==nil then
-register.new("config.host","https://raw.github.com/Dimach/MineXDownload/master/MineX/stable")
+register.new("config.host","http://industrialserver.ru/MineX")
 
 end
 if register.get("config.ver")==nil then
-register.new("config.ver","STABLE@V2.0@B1.1.13")
+register.new("config.ver","MineXGU12")
 
 end
 if register.get("MineX.lp")==nil then
@@ -326,20 +326,20 @@ end
 local function upc()
 formRegister("System.cp.upc")
 local function getHost()
-if register.get("config.host")=="https://raw.github.com/Dimach/MineXDownload/master/MineX/stable/" then
-return "Current host: GitHub MineX[Stable]"
-elseif register.get("config.host")=="https://raw.github.com/Dimach/MineXDownload/master/MineX/unstable/" then
-return "Current host: GitHub MineX[Unstable]"
+if register.get("config.host")=="http://industrialserver.ru/MineX" then
+return "Current host: IcSrv MineX[Stable]"
+elseif register.get("config.host")=="http://industrialserver.ru/MineXbeta" then
+return "Current host: IcSrv MineX[BETA]"
 else
 return "Current host: Unknown"
 end
 end
 
 local function setHost()
-if register.get("config.host")=="https://raw.github.com/Dimach/MineXDownload/master/MineX/stable/" then
-register.edit("config.host","https://raw.github.com/Dimach/MineXDownload/master/MineX/unstable/")
+if register.get("config.host")=="http://industrialserver.ru/MineX" then
+register.edit("config.host","http://industrialserver.ru/MineXbeta")
 else
-register.edit("config.host","https://raw.github.com/Dimach/MineXDownload/master/MineX/stable/")
+register.edit("config.host","http://industrialserver.ru/MineX")
 end
 end
 
