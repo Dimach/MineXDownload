@@ -2,14 +2,15 @@
 
 openFunc=nil
 local path=""
-local function list()
-
-
+local function list(disk,sss)
+if not disk then disk="C" end
+if sss~=nil then path=sss end
 
 formRegister("FS")
 local x,y=term.getSize()
-
-form.add.text("FS",1,3,"| "..string.sub(path,-(x-4)))
+n=string.find(path,"\\")
+if n==nil then n=#path end
+form.add.text("FS",1,3,"| "..disk..":\\"..string.sub(path,n+1))
 form.add.text("FS",Form.maxX-1,3,"|")
 form.add.multiPage("FS",1,4,Form.maxY-3,Form.maxX-1,"FS")
 
@@ -39,7 +40,7 @@ table.sort( tFiles )
 local function an(ar) 
 setBeckGround("nil")
 path=ar
-list() 
+list(disk) 
 end
 
 local function amm(ad)
@@ -51,7 +52,7 @@ end
 local function delete()
 fs.delete(ad)
 setBeckGround("nil")
-list()
+list(disk)
 end
 local function run()
 dofile(ad)
@@ -85,7 +86,7 @@ local function rn(ad)
 if ad==nil then ad = "" end
 local function cancel()
 setBeckGround("nil")
-list()
+list(disk)
 
 end
 
@@ -93,7 +94,7 @@ local function asna()
 
 fs.move(ad,string.sub(ad,1,findfromback(ad,"\\"))..form.read.getText("FS.rn","FS.rn"))
 setBeckGround("nil")
-list()
+list(disk)
 end
 
 setBeckGround("FS")
@@ -171,13 +172,13 @@ file = io.open(path.."\\newfile","w")
 
 file:write("")
 file:close()
-list()
+list(disk)
 end
 
 local function folder()
 
 fs.makeDir(path.."\\newfolder")
-list()
+list(disk)
 end
 local function paste()
 
@@ -216,30 +217,32 @@ formChange("FS")
 
 end
 
-local function HDD()
-
-path="C"
-list()
-
-end
 
 
 function MineX.fs()
 local path=""
-
+local active=true
+local function rebuild()
+while active do
 formRegister("System.mycomp")
 
 
-form.add.button("System.mycomp",1,3,"HDD [C]",HDD,"","",28)
-
+form.add.button("System.mycomp",1,3,"HDD [C]",function() active=false list("C","C") end,"","",28)
+for i=1,#MineX.CDROMS.sides do
+if disk.hasData(MineX.CDROMS.sides[i]) then
+form.add.button("System.mycomp",1,3+i,"Disk ["..MineX.CDROMS.symbols[i].."]",function() active=false list(MineX.CDROMS.symbols[i],disk.getMountPath(MineX.CDROMS.sides[i])) end,"","",28)
+else
+form.add.button("System.mycomp",1,3+i,"No disk ["..MineX.CDROMS.symbols[i].."]",function() end,"","",28)
+end
+end
 
 formChange("System.mycomp")
--- repeat
-
--- os.startTimer(0.7)
--- a,b=os.pullEvent()
--- until a=="disk" or a=="disk_eject"
-
+repeat
+a,b=os.pullEventRaw()
+until a=="disk" or a=="disk_eject" or b=="disk" or b=="disk_eject"
+end
+end
+addFunctionToRun(rebuild)
 end
 
 function MineX.openDialog(path1,func)
