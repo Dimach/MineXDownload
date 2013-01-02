@@ -380,21 +380,21 @@ end
 function main3(arg)
 mineWeb={}
 function load()
-if not fs.exists("C\\WinecraftWeb\\pages") then
-fs.makeDir("C\\WinecraftWeb\\pages")
+if not fs.exists("C\\MinecraftWeb\\pages") then
+fs.makeDir("C\\MinecraftWeb\\pages")
 end
-if not fs.exists("C\\WinecraftWeb\\pages\\404") then
-file = io.open("C\\WinecraftWeb\\pages\\404", "w")
+if not fs.exists("C\\MinecraftWeb\\pages\\404") then
+file = io.open("C\\MinecraftWeb\\pages\\404", "w")
 file:write("Error 404 \nPage not found")
 file:close()
 end
-if not fs.exists("C\\WinecraftWeb\\pages\\main") then
-file = io.open("C\\WinecraftWeb\\pages\\main", "w")
+if not fs.exists("C\\MinecraftWeb\\pages\\main") then
+file = io.open("C\\MinecraftWeb\\pages\\main", "w")
 file:write("Site main page")
 file:close()
 end
-if not fs.exists("C\\WinecraftWeb\\files") then
-fs.makeDir("C\\WinecraftWeb\\files")
+if not fs.exists("C\\MinecraftWeb\\files") then
+fs.makeDir("C\\MinecraftWeb\\files")
 end
 if not fs.exists("MWWS.save") then
 file = io.open("MWWS.save", "w")
