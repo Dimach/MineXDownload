@@ -2,11 +2,29 @@
 
 openFunc=nil
 local path=""
+local lastPath=""
 local function list(disk,sss)
+
+
 if not disk then disk="C" end
 if sss~=nil then path=sss end
 
+
+if fs.exists(path.."\\.folder") then
+
+f=io.open(path.."\\.folder")
+local flag=f:read()
+if flag=="userNameOnly" then
+if users[1][1]~=string.sub(path,findfromback(path,"\\")+1) and ( users[1][3]==nil or users[1][3]~=true) then
+list(disk,lastPath)
+end
+end
+f:close()
+end
+lastPath=path
+
 formRegister("FS")
+
 local x,y=term.getSize()
 n=string.find(path,"\\")
 if n==nil then n=#path end
