@@ -42,7 +42,21 @@ path=ar
 list() 
 end
 
-local function amm(ad)
+local function amm(ad,key)
+local function open(arg)
+if isDialog then
+setBeckGround("nil")
+openFunc(string.gsub(arg,"\\","/"))
+else
+if findfromback(arg,".")~=false then
+register.get("formats.def."..string.sub(arg,findfromback(arg,".")+1))(arg)
+else
+register.get("formats.def.")(arg)
+end
+end
+end
+if key~=28 and key~=29 then return end
+if key==28 then if fs.isDir(ad) then an(ad) return else open(ad) return end end
 local function close()
 setBeckGround("nil")
 formChange("FS")
@@ -57,18 +71,7 @@ local function run()
 dofile(ad)
 end
 
-local function open(arg)
-if isDialog then
-setBeckGround("nil")
-openFunc(string.gsub(arg,"\\","/"))
-else
-if findfromback(arg,".")~=false then
-register.get("formats.def."..string.sub(arg,findfromback(arg,".")+1))(arg)
-else
-register.get("formats.def.")(arg)
-end
-end
-end
+
 
 
 local function openW(arg)
@@ -196,16 +199,18 @@ form.add.button("NEW",1,6,"BACK",annn,"","",28)
 formChange("NEW")
 end
 
+
+
 for i=1,#tDirs do
 
-
-form.multiPage.addButton("FS","FS",2,2+i-1,tDirs[i],functionBuilder(amm,{path.."\\"..tDirs[i]}),"","",28)
+function asdf(aaaaaa) amm(path.."\\"..tDirs[i],aaaaaa) end
+form.multiPage.addButton("FS","FS",2,2+i-1,tDirs[i],asdf,"","")
 end
 
 for n=1,#tFiles do
 
 
-form.multiPage.addButton("FS","FS",2,#tDirs+2+n-1,tFiles[n],functionBuilder(amm,{path.."\\"..tFiles[n]}),"","",28)
+form.multiPage.addButton("FS","FS",2,#tDirs+2+n-1,tFiles[n],function(arg) amm(path.."\\"..tFiles[n],arg) end,"","")
 form.multiPage.addText("FS","FS",getFixLen(tFiles[n])+6,#tDirs+2+n-1,"FILE")
 end
 form.multiPage.addButton("FS","FS",2,#tDirs+#tFiles+2,"NEW",new,"","",28)

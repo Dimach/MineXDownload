@@ -220,7 +220,7 @@ function multiPageZoneAddButton(arg,index,x,y,text,associative,msg,butIndex,key)
 if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
 if text==nil then text="" elseif msg==nil then msg="" end
 if type(associative)~="function" then error("Error #011:Исполняемый код не обнаружен") end
-if type(key)~="number" then key=28 end
+if type(key)~="number" then key=false end
 for i=1, #arg do
 if arg[i]["info"][5]==index  then
 arg[i]["objects"]["selected"]["button"][#arg[i]["objects"]["selected"]["button"]+1]={x,y,text,associative,msg,butIndex,key}
@@ -285,6 +285,10 @@ function multiPageEventUpdate(ev,key,arg,sel)
 if ev=="key" then
 if arg["objects"]["selected"]["button"][sel["index"]][7] == key then
 addFunctionToRun(arg["objects"]["selected"]["button"][sel["index"]][4])
+return
+end
+if not arg["objects"]["selected"]["button"][sel["index"]][7] then
+addFunctionToRun(function() arg["objects"]["selected"]["button"][sel["index"]][4](key) end)
 return
 end
 y = arg["objects"]["selected"][sel["type"]][sel["index"]][2]
