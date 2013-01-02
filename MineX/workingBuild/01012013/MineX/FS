@@ -1,5 +1,5 @@
-
-
+MineX.saveFile=false
+MineX.CopyPastePath=""
 openFunc=nil
 local path=""
 local lastPath=""
@@ -78,6 +78,20 @@ if key~=28 and key~=29 then return end
 if key==28 then if fs.isDir(ad) then an(ad) return else open(ad) return end end
 
 local function close()
+setBeckGround("nil")
+formChange("FS")
+end
+
+local function cut(ad)
+MineX.CopyPastePath=ad
+MineX.saveFile=false
+setBeckGround("nil")
+formChange("FS")
+end
+
+local function copy(ad)
+MineX.CopyPastePath=ad
+MineX.saveFile=true
 setBeckGround("nil")
 formChange("FS")
 end
@@ -201,7 +215,19 @@ fs.makeDir(path.."\\newfolder")
 list(disk)
 end
 local function paste()
-
+local sSource = shell.resolve(MineX.CopyPastePath)
+local sDest = shell.resolve(path..string.sub(MineX.CopyPastePath,findfromback(MineX.CopyPastePath,"\\")))
+if fs.exists( sDest ) and fs.isDir( sDest ) then
+	sDest = fs.combine( sDest, fs.getName(sSource) )
+end
+if MineX.saveFile then
+fs.copy( sSource, sDest )
+else
+fs.move( sSource, sDest )
+MineX.saveFile=true
+MineX.CopyPastePath=path..string.sub(MineX.CopyPastePath,findfromback(MineX.CopyPastePath,"\\"))
+end
+list(disk)
 end
 local function annn() 
 
@@ -218,11 +244,8 @@ formChange("NEW")
 end
 
 for i=1,#tDirs do
-
-
 function asdf(aaaaaa) amm(path.."\\"..tDirs[i],aaaaaa) end
 form.multiPage.addButton("FS","FS",2,2+i-1,tDirs[i],asdf,"","")
-
 end
 
 for n=1,#tFiles do
