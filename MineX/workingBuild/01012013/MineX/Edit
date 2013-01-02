@@ -41,4 +41,3 @@ end
 function startEditing(path)
 MineXLuaInit(function() main(path) end,"test")
 end
-

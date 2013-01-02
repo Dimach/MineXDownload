@@ -10,11 +10,14 @@ Form={}
 Form.maxX,Form.maxY=term.getSize()
 
 
-
+function farg(f,...)
+local a={...} 
+return function() f(unpack(a)) end 
+end
 
 function functionBuilder(func,arg)
 
-return function() func(unpack(arg)) end
+return farg(func,unpack(arg))
 
 end
 
@@ -34,10 +37,8 @@ if register.get("formats.def.")==nil then
 register.new("formats.def.",a)
 end
 
-local a="function(arg) dofile(\"MineX/Edit\") startEditing(arg) end"
-if register.get("formats.")==nil then
-register.new("formats.",a)
-end
+dofile("RegisterDef")
+
 
 function attachLogger(tableForLog)
 
@@ -521,6 +522,8 @@ end
 
 
 dofile("MineX/FS")
+
+dofile("MineX/MineXshell")
 if arg==28 then
 users={}
 

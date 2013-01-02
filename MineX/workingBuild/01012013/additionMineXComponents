@@ -199,3 +199,5 @@ addComponent("editSpecFrame","selected",editPrint,editAdd,specEditEventUpdate,ed
 addComponent("specRead","selected",readPrint,sReadAdd,sReadEventUpdate,readSpecial,{readGetText,readSetText},{"getText","setText"})
 
 addComponent("mineWebPage","selected",pagePrint,pageAdd,pageUpdate,nil,{pageAddString,pageClear},{"addString","clear"})
+
+addComponent("memo","selected",pagePrint,pageAdd,pageUpdate,nil,{pageAddString,pageClear},{"addString","clear"})

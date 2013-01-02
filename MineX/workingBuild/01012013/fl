@@ -15,5 +15,6 @@ fileslist={
 {"UTF8Fix","UTF8Fix"},
 {"error","error"},
 {"mxweb","mxweb"},
-{"additionMineXComponents","additionMineXComponents"}
+{"additionMineXComponents","additionMineXComponents"},
+{"BOOTUP.txt","BOOTUP.txt"}
 }
