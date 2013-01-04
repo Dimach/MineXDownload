@@ -1,7 +1,7 @@
 
 
 MineX.version="MineX Global Update First Relased Version Lite"
-
+MineX.httpversion="STABLE@V2.1@B4.1.13"
 MineX.log={}
 
 
@@ -21,12 +21,12 @@ return farg(func,unpack(arg))
 
 end
 
-if register.get("config.ver")==nil then
+if register.get("config.host")==nil then
 register.new("config.host","https://raw.github.com/Dimach/MineXDownload/master/MineX/stable")
 
 end
-if register.get("config.ver")==nil then
-register.new("config.ver","STABLE@V2.1@B4.1.13")
+if not register.get("config.ver")==MineX.httpversion then
+register.new("config.ver",MineX.httpversion)
 
 end
 if register.get("MineX.lp")==nil then

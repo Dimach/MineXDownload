@@ -38,6 +38,7 @@ else
 		sleep(1)
 end
 
+
 print("Setup complite, rebooting")
 sleep(1)
 fs.delete("UpdateTemp")
