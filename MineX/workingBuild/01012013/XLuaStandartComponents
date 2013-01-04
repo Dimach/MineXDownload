@@ -1,3 +1,5 @@
+
+
 function buttonPrint(arg,asSelected)
 x = arg[1]
 y = arg[2]
@@ -13,12 +15,12 @@ msg = arg[5]
 end
 if asSelected then
 term.setCursorPos(x,y)
-write(">["..text.."]<")
+term.write(">["..text.."]<")
 term.setCursorPos(x,y-1)
-write(msg)
+term.write(msg)
 else
 term.setCursorPos(x+1,y)
-write("["..text.."]")
+term.write("["..text.."]")
 end
 end
 
@@ -68,18 +70,18 @@ state = arg[5]
 if asSelected then
 term.setCursorPos(x,y)
 if state then
-write(">[V]<")
+term.write(">[V]<")
 else
-write(">[ ]<")
+term.write(">[ ]<")
 end
 term.setCursorPos(x,y-1)
-write(msg)
+term.write(msg)
 else
 term.setCursorPos(x+1,y)
 if state then
-write("[V]")
+term.write("[V]")
 else
-write("[ ]")
+term.write("[ ]")
 end
 end
 end
@@ -93,7 +95,7 @@ else
 text = arg[3]
 end
 term.setCursorPos(x,y)
-write(text)
+term.write(text)
 end
 
 function textAdd(x,y,text,index)
@@ -117,7 +119,7 @@ for i=1,len-2 do
 if i <= progress and i >= sProgress then progres = progres.."|" else progres = progres.." " end
 end
 term.setCursorPos(x,y)
-write("\{"..progres.."\}")
+term.write("\{"..progres.."\}")
 end
 
 function progresBarAdd(x,y,len,index)
@@ -141,12 +143,12 @@ text = arg[3]
 msg = arg[4]
 if asSelected then
 term.setCursorPos(x,y)
-write(">>>"..text.." <")
+term.write(">>>"..text.." <")
 term.setCursorPos(x,y-1)
-write(msg)
+term.write(msg)
 else
 term.setCursorPos(x+1,y)
-write(">>"..text)
+term.write(">>"..text)
 end
 end
 
@@ -246,7 +248,7 @@ y = arg["objects"]["noselected"]["text"][n][2]
 text = arg["objects"]["noselected"]["text"][n][3]
 if y > obPF and y < obPS then
 term.setCursorPos(x+obX,y-obPF+obY)
-write(text)
+term.write(text)
 end
 end
 for n=1, #arg["objects"]["selected"]["button"] do
@@ -257,27 +259,27 @@ msg = arg["objects"]["selected"]["button"][n][5]
 if y > obPF and y < obPS then
 term.setCursorPos(x+obX,y-obPF+obY)
 if sSel and sel["type"] == "button" and sel["index"] == n then
-write(">["..text.."]<")
+term.write(">["..text.."]<")
 term.setCursorPos(x+obX,y-obPF+obY-1)
-write(msg)
+term.write(msg)
 else
-write(" ["..text.."] ")
+term.write(" ["..text.."] ")
 end
 end
 end
 term.setCursorPos(obX,obY)
-write("+")
-for i=1,obMLX-2 do write("-") end
-write("+")
+term.write("+")
+for i=1,obMLX-2 do term.write("-") end
+term.write("+")
 term.setCursorPos(obX,obY+obML-1)
-write("+")
-for i=1,obMLX-2 do write("-") end
-write("+")
+term.write("+")
+for i=1,obMLX-2 do term.write("-") end
+term.write("+")
 for i=obY+1,obML+obY-2 do 
 term.setCursorPos(obX,i)
-write("|")
+term.write("|")
 term.setCursorPos(obX+obMLX-1,i)
-write("|")
+term.write("|")
 end
 end
 
