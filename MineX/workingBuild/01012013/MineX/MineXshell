@@ -90,10 +90,13 @@ end
 MineX.shell.commandTable[":label"]=function(p)
 labels[p]=iLine
 end
-MineX.shell.commandTable["open"]=function(p)
+MineX.shell.commandTable["open"]=function(p) 
+MineX.shell.commandTable["openGlobal"](currentPath.."/"..p) 
+end
+MineX.shell.commandTable["openGlobal"]=function(p)
 local appFunc = function()
 local func = function()
-dofile(currentPath.."/"..p)
+dofile(p)
 end
 local tFenv=getfenv(func)
 tFenv.print=function(str) form.memo.addString("System.shell","shell",tostring(str)) end
