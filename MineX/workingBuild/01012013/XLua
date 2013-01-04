@@ -3,6 +3,7 @@ mass["multiTaskSupport"]={}
 mass["paralelRun"]={}
 tFilters = {}
 prSelMod = false
+MineX.write=write
 
 function stringToTable(str)
 str=str.."\n"
@@ -62,9 +63,9 @@ else
 term.setCursorPos(1,1)
 local drop = "Time "..textutils.formatTime(os.time(),true)
 if #drop==10 then
-write(drop)
+term.write(drop)
 else
-write(drop.." ")
+term.write(drop.." ")
 end
 end
 sleep(0.3)
@@ -87,7 +88,7 @@ if event == "key" and p1 == 15 then
 prSelMod=true
 term.setCursorPos(1,2)
 x,y = term.getSize()
-for i=1,x-1 do write("-") end
+for i=1,x-1 do term.write("-") end
 bts = {}
 term.setCursorBlink(false)
 for i=1,#mass["multiTaskSupport"] do
@@ -110,16 +111,16 @@ y=yy/2
 term.setCursorPos(1,yy/2-2)
 term.clearLine()
 for i=1,xx-1 do
-write("-")
+term.write("-")
 end
 term.setCursorPos(1,yy/2+1)
 term.clearLine()
 for i=1,xx-1 do
-write("-")
+term.write("-")
 end
 term.setCursorPos((xx-14+2)/2,yy/2-1)
 term.clearLine()
-write("Select program")
+term.write("Select program")
 term.setCursorPos(x,y)
 term.clearLine()
 for i=1,#bts do if i==sel then term.write(">["..bts[i].."]<") else term.write(" ["..bts[i].."] ") end end
@@ -175,6 +176,14 @@ end
 end
 end
 
+function getTread(index) 
+for i=1,#mass["paralelRun"] do
+if mass["paralelRun"][i]["index"]==index and mass["paralelRun"][i]["appIndef"]==appIndef then
+return mass["paralelRun"][i]["tread"]
+end
+end
+end
+
 function checkingTasks(n, ok, filter, param)
 if ok then
 if filter=="return" then
@@ -183,6 +192,10 @@ local ok, filter, param = coroutine.resume(mass["paralelRun"][n]["tread"])
 checkingTasks(n, ok, filter, param)
 elseif filter=="read" then
 local ok, filter, param = coroutine.resume(mass["paralelRun"][n]["tread"], "read", mass["paralelRun"][n]["input"])
+mass["paralelRun"][n]["input"]=nil
+checkingTasks(n, ok, filter, param)
+elseif filter=="waitInput" and mass["paralelRun"][n]["input"] then
+local ok, filter, param = coroutine.resume(mass["paralelRun"][n]["tread"], "waitRead", mass["paralelRun"][n]["input"])
 mass["paralelRun"][n]["input"]=nil
 checkingTasks(n, ok, filter, param)
 else
@@ -206,6 +219,7 @@ function inputArg(arg,index)
 for i=1,#mass["paralelRun"] do
 if mass["paralelRun"][i]["index"]==index and mass["paralelRun"][i]["appIndef"]==appIndef then
 mass["paralelRun"][#mass["paralelRun"]]["input"] = arg
+os.queueEvent("update")
 return
 end
 end
@@ -270,20 +284,26 @@ drop.sAppI=sAppI
 f = setfenv(sFunc,drop)
 f()
 end
-mass["paralelRun"][#mass["paralelRun"]+1]={}
-mass["paralelRun"][#mass["paralelRun"]]["tread"]=coroutine.create (func)
-mass["paralelRun"][#mass["paralelRun"]]["appIndef"]=appIndef
-mass["paralelRun"][#mass["paralelRun"]]["arg"]=arg
-mass["paralelRun"][#mass["paralelRun"]]["index"]=index
-local ok, param = coroutine.resume(mass["paralelRun"][#mass["paralelRun"]]["tread"],arg)
+local numb=#mass["paralelRun"]+1
+for i=1,#mass["paralelRun"] do
+if mass["paralelRun"][i]["index"]==index and mass["paralelRun"][i]["appIndef"]==appIndef then
+numb=i
+end
+end
+mass["paralelRun"][numb]={}
+mass["paralelRun"][numb]["tread"]=coroutine.create (func)
+mass["paralelRun"][numb]["appIndef"]=appIndef
+mass["paralelRun"][numb]["arg"]=arg
+mass["paralelRun"][numb]["index"]=index
+local ok, param = coroutine.resume(mass["paralelRun"][numb]["tread"],arg)
 if ok then
-mass["paralelRun"][#mass["paralelRun"]]["input"]=nil
-mass["paralelRun"][#mass["paralelRun"]]["output"]=param
-mass["paralelRun"][#mass["paralelRun"]]["active"]=true
-mass["paralelRun"][#mass["paralelRun"]]["state"]="run"
-if coroutine.status(mass["paralelRun"][#mass["paralelRun"]]["tread"]) == "dead" then
-mass["paralelRun"][#mass["paralelRun"]]["active"]=false
-mass["paralelRun"][#mass["paralelRun"]]["state"]="finish"
+mass["paralelRun"][numb]["input"]=nil
+mass["paralelRun"][numb]["output"]=param
+mass["paralelRun"][numb]["active"]=true
+mass["paralelRun"][numb]["state"]="run"
+if coroutine.status(mass["paralelRun"][numb]["tread"]) == "dead" then
+mass["paralelRun"][numb]["active"]=false
+mass["paralelRun"][numb]["state"]="finish"
 end
 else
 x,y = term.getSize()
@@ -293,9 +313,9 @@ form.add.text("error",(x-#param)/2,y/2,"\""..param.."\"")
 form.add.button("error",x/2-2,y/2+1,"Back",function() formChange(s) end)
 s=getActualForm()
 formChange("error")
-mass["paralelRun"][#mass["paralelRun"]]["active"]=false
-mass["paralelRun"][#mass["paralelRun"]]["state"]="error"
-mass["paralelRun"][#mass["paralelRun"]]["fail"]=param
+mass["paralelRun"][numb]["active"]=false
+mass["paralelRun"][numb]["state"]="error"
+mass["paralelRun"][numb]["fail"]=param
 end
 end
 
@@ -356,7 +376,7 @@ end
 end
 
 function formChange(formName)
-if formName==nil then error("Название формы не может быть пустым") end
+if not formName then error("Название формы не может быть пустым") end
 if mass[appIndef]["appForms"][formName]==nil then error("Форма не существует") end
 mass[appIndef]["selector"]["type"]=nil
 mass[appIndef]["selector"]["index"]=nil
@@ -366,7 +386,11 @@ formsUpdate()
 end
 
 function setBeckGround(form)
-if mass[appIndef]["appForms"][form]==nil and form~=nil then error("Форма "..form.." не существует") end
+if type(form)=="table" then
+for i=1,#form do
+if mass[appIndef]["appForms"][form[i]]==nil then error("Форма "..form[i].." не существует") end
+end
+end
 mass[appIndef]["backGroundForm"]=form
 end
 
@@ -381,7 +405,8 @@ end
 function printBackGround(formName)
 term.setCursorBlink(false)
 term.clear()
-if formName==nil then return end
+if not formName then return end
+if type(formName)=="table" then for i=1,#formName do printBackGround(formName[i]) end return end
 for n=1, #mass["API"]["components"] do
 name=mass["API"]["components"][n][1]
 cType=mass["API"]["components"][n][2]
@@ -426,6 +451,7 @@ end
 
 function fail(param)
 if appIndef ~= mass["multiTaskSupport"][1][2] then
+--if true then
 formRegister("error")
 if param==nil then param="Unknown error:Невозможно определить ошибку" end
 local xx,yy = term.getSize()
