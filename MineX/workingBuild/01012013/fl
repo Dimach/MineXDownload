@@ -16,5 +16,8 @@ fileslist={
 {"error","error"},
 {"mxweb","mxweb"},
 {"additionMineXComponents","additionMineXComponents"},
-{"BOOTUP.txt","BOOTUP.txt"}
+{"BOOTUP.txt","BOOTUP.txt"},
+{"RegisterDef","RegisterDef"},
+{"MineX/MineXshell","MineX/MineXshell"},
+{"MineX/MineXshellExec","MineX/MineXshellExec"}
 }
