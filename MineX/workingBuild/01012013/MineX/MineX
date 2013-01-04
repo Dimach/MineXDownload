@@ -32,7 +32,8 @@ end
 if register.get("MineX.lp")==nil then
 register.new("MineX.lp","eu")
 end
-local a="function(arg) dofile(arg) end"
+
+local a="function(arg) local func = function(args) dofile(args) end local tFenv=getfenv(func) tFenv.print=function() dofile(\"MineX/MineXshell\") MineXLuaInit(MineX.shell.shellExec,\"MineXshell\") MineX.shell.commandTable[\"openGlobal\"](arg) end tFenv.write=tFenv.print tFenv.read=tFenv.print setfenv(func,tFenv) func(arg) print(\"Program complete\") end"
 if register.get("formats.def.")==nil then
 register.new("formats.def.",a)
 end
