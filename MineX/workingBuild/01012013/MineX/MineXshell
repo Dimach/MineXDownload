@@ -3,6 +3,7 @@ local currentPathE="C://"
 local currentPath="C"
 local labels={}
 local iLine=1
+local runProgram=false
 MineX.shell={}
 
 
@@ -90,7 +91,19 @@ MineX.shell.commandTable[":label"]=function(p)
 labels[p]=iLine
 end
 MineX.shell.commandTable["open"]=function(p)
-
+local appFunc = function()
+local func = function()
+dofile(currentPath.."/"..p)
+end
+local tFenv=getfenv(func)
+tFenv.print=function(str) form.memo.addString("System.shell","shell",tostring(str)) end
+tFenv.write=function(str) form.memo.addSymbol("System.shell","shell",tostring(str)) end
+tFenv.read=function() runProgram=true while true do local a,b = coroutine.yield("programRead") if a=="programRead" then return b end end end
+setfenv(func,tFenv)
+func()
+runProgram=false
+end
+addFunctionToRun(appFunc,nil,"RunedProgram")
 end
 MineX.shell.commandTable["exec"]=function(p)
 MineX.shell.shellExec()
@@ -118,14 +131,15 @@ echo(users[1][1].."@"..currentPathE..">"..cmd)
 if accept(cmd) then
 MineX.shell.commandTable[cmd](...)
 end
-
-
 end
 
 local function send()
-
+if runProgram then
+coroutine.resume(getTread("RunedProgram"),"programRead",form.specRead.getText("System.shell","command"))
+runProgram=false
+else
 command(unpack(wordsToTable(form.specRead.getText("System.shell","command"))))
-
+end
 end
 
 local function exec(text)
@@ -138,7 +152,7 @@ function MineX.shell.shellExec()
 formRegister("System.shell")
 local x,y=term.getSize()
 form.add.memo("System.shell",1,3,x-1,y-3,"shell")
-form.add.specRead("System.shell",1,y,"","",x-5,send,"command")
+form.add.specRead("System.shell",1,y,"","",x-12,send,"command")
 form.add.button("System.shell",x-7,y,"SEND",send,"","",28)
 
 formChange("System.shell")
@@ -153,6 +167,5 @@ while iLine<=#script do
 exec(script[iLine])
 iLine=iLine+1
 end
-
 end
 
