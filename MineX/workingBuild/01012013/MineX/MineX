@@ -22,7 +22,7 @@ return farg(func,unpack(arg))
 end
 
 if register.get("config.ver")==nil then
-register.new("config.host","http://industrialserver.ru/MineX")
+register.new("config.host","https://raw.github.com/Dimach/MineXDownload/master/MineX/stable")
 
 end
 if register.get("config.ver")==nil then
@@ -266,7 +266,6 @@ form.multiPage.addButton("System.start","System.start",1,6,"CLOSE",back,"","",28
 
 end
 
-
 function MineX.cp()
 function calsl()
 
@@ -284,44 +283,123 @@ formRegister("System.cp.uc")
 form.add.text("System.cp.uc",1,4,"Welcome to user control panel "..users[1][1])
 form.add.button("System.cp.uc",1,5,"BACK",back,"","",28)
 
-if users[1][3] then
+
 
 
 
 local function ep()
+local function setPass(pass)
+
+file=io.open("C/Users/.users","r")
+
+local strTable=stringToTable(file:read("*a"))
+for i=1,#strTable do
+
+strTable[i]=strTable[i].."\n"
+
+end
+if users[1][2]==nil then users[1][2]="nil" end
+for a=1,#strTable do
+if findfromback(strTable[a],users[1][2]) then
+if users[1][2]=="nil" then
+strTable[a]=string.sub(strTable[a],1,findfromback(strTable[a],users[1][2])-1).."\""..pass.."\""..string.sub(strTable[a],findfromback(strTable[a],users[1][2])+string.len(users[1][2]))
+else
+strTable[a]=string.sub(strTable[a],1,findfromback(strTable[a],users[1][2])-1)..pass..string.sub(strTable[a],findfromback(strTable[a],users[1][2])+string.len(users[1][2]))
+end
+end
+end
+file:close()
+
+file=io.open("C/Users/.users","w")
+for b=1,#strTable do
+file:write(strTable[b])
+end
+file:close()
+programStop()
+setFocusToSystem()
+MineX.lock()
+end
+local function check(arg)
+if arg==users[1][2] then
+MineX.readMsg({" Type new password:"},"System.cp.uc",function(arg) setPass(arg) end,function() formChange("System.cp.uc") end,"",16)
+end
+end
+
+
+if users[1][2]~=nil then
+MineX.readMsg({" Type old password:"},"System.cp.uc",function(arg) check(arg) end,function() formChange("System.cp.uc") end,"",16)
+else
+MineX.readMsg({" Type new password:"},"System.cp.uc",function(arg) setPass(arg) end,function() formChange("System.cp.uc") end,"",16)
+end
+end
+
+
+
+local function crn()
+
 local function crAccount(arg,id) 
 
-file=io.open()
+file=io.open("C/Users/.users","a")
 
-file:write("table.insert(users,{"..arg..",nil,"..id.."})")
+file:write("table.insert(users,{\""..arg.."\",nil,"..tostring(id).."})")
 file:close()
+os.reboot()
 formChange("System.cp")
 end
-function lod(iarg) 
-MineX.readMsg(" Type new account name:","System.cp.uc",function(arg) MineX.infoMsg(" Account "..arg.." created!","System.cp.uc",function() crAccount(arg,iarg) end) end ,function() MineX.infoMsg(" Creation of account canceled!","System.cp.uc",function() formChange("System.cp") end) end,"",16) 
+local function lod1(arg,iarg1)
+MineX.infoMsg({" Account "..arg.." created!"},"System.cp.uc",function() crAccount(arg,iarg1) end) 
+end
+local function lod(iarg) 
+
+
+
+MineX.readMsg({" Type new account name:"},"System.cp.uc",function(arg) lod1(arg,iarg) end,function() formChange("System.cp") end,"",16) 
 end
 
-MineX.ynMsg(" Create an admin account","System.cp.uc",function() lod(true) end, lod)
-end
-local function crn()
 
-
-
-end
-form.add.button("System.cp.uc",1,6,"Edit Accounts Password",ep,"","",28)
-form.add.button("System.cp.uc",1,7,"Create new account",crn,"","",28)
+if users[1][3] then
+MineX.ynMsg({" Create an admin account?"},"System.cp.uc",function() lod(true) end, function() lod(false) end)
 else
 
-local function ep()
-
+lod(false)
 end
-local function crn()
-
 end
 
-form.add.button("System.cp.uc",1,6,"Edit Accounts Password",ep,"","",28)
+local function del2()
+file=io.open("C/Users/.users","r")
+
+local strTable=stringToTable(file:read("*a"))
+for i=1,#strTable do
+
+strTable[i]=strTable[i].."\n"
+
+end
+for a=1,#strTable do
+if findfromback(strTable[a],users[1][1]) then
+strTable[a]=""
+end
+end
+file:close()
+
+file=io.open("C/Users/.users","w")
+for b=1,#strTable do
+file:write(strTable[b])
+end
+file:close()
+os.reboot()
+end
+
+local function del()
+MineX.ynMsg({" Delete this account?"},"System.cp.uc",function() del2() end, function() formChange("System.cp.uc") end)
+end
+
+
+form.add.button("System.cp.uc",1,6,"Edit Account Password",ep,"","",28)
 form.add.button("System.cp.uc",1,7,"Create new account",crn,"","",28)
-end
+form.add.button("System.cp.uc",1,8,"Delete this account",del,"","",28)
+
+
+
 formChange("System.cp.uc")
 end
 
@@ -338,10 +416,10 @@ end
 end
 
 local function setHost()
-if register.get("config.host")=="http://industrialserver.ru/MineX" then
-register.edit("config.host","http://industrialserver.ru/MineXbeta")
+if register.get("config.host")=="https://raw.github.com/Dimach/MineXDownload/master/MineX/stable" then
+register.edit("config.host","https://raw.github.com/Dimach/MineXDownload/master/MineX/unstable")
 else
-register.edit("config.host","http://industrialserver.ru/MineX")
+register.edit("config.host","https://raw.github.com/Dimach/MineXDownload/master/MineX/stable")
 end
 end
 
@@ -395,7 +473,6 @@ form.add.button("System.cp",1,4,"Update control",upc,"","",28)
 form.add.button("System.cp",1,5,"Language control",lc,"","",28)
 formChange("System.cp")
 end
-
 
 
 function MineX.shutdownMenu(vAct,vBack)
