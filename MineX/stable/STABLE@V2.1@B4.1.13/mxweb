@@ -1,0 +1,738 @@
+function main1(arg)
+function goToPage()
+form.mineWebPage.clear("homePage","page")
+local url,find,sId
+if getActualForm()=="chatPage" then 
+url = form.specRead.getText("chatPage","URL")
+form.specRead.setText("homePage","URL",form.specRead.getText("chatPage","URL"))
+else
+url = form.specRead.getText("homePage","URL")
+end
+formChange("homePage")
+if string.sub(url,1,7)=="http://" then url=string.sub(url,8) find=true end
+ind=string.find (url,"/")
+if ind~=nil or url~="" then
+if ind then
+if find then ind=ind-7 end
+site=string.sub(url,1,ind-1)
+page=string.sub(url,ind+1)
+if page =="" then page="index.php" end
+else
+site=url
+page="index.php"
+end
+sId=getSiteId(site)
+if sId~=nil then
+t = getPage(sId,page)
+if t then
+local drop = stringToTable(t)
+for i=1,#drop do
+form.mineWebPage.addString("homePage","page",drop[i])
+end
+formsUpdate()
+end
+end
+end
+end
+
+
+
+function getSiteId(url)
+rednet.send(dnsId, url)
+id, servId = rednet.receive(10)
+if id==nil then
+form.mineWebPage.addString("homePage","page","DNS server not responded")
+elseif id == dnsId then
+if servId == "BAN!:" then
+formChange("ban")
+elseif servId == "SNF" then
+form.mineWebPage.addString("homePage","page","It is impossible to find the remote server")
+else
+return tonumber(servId)
+end
+else
+getSiteId(url)
+end
+end
+
+function getPage(servId,page)
+rednet.send(servId, page)
+id, pageText = rednet.receive(10)
+if id == nil then
+form.mineWebPage.addString("homePage","page","Remote host not responded")
+elseif servId==id then
+if string.sub(pageText,1,5) == "FILE:" then
+file = io.open("C\\"..page,"w")
+file:write(string.sub(pageText,6))
+file:close()
+form.mineWebPage.addString("homePage","page","Download sucssesfuly!")
+elseif string.sub(pageText,1,5) == "GOTO:" then
+goToPage(string.sub(pageText,6))
+elseif string.sub(pageText,1,5) == "CHAT:" then
+chatingMode(tonumber(string.sub(pageText,6)))
+elseif string.sub(pageText,1,5) == "BAN!:" then
+form.mineWebPage.addString("homePage","page","You are baned in this site!")
+elseif string.sub(pageText,1,5) == "PAGE:" then
+return string.sub(pageText,6)
+end 
+else
+getPage(servId,page)
+end
+end
+
+function chatingMode(chatId)
+local x,y=term.getSize()
+formRegister("chatPage")
+form.add.mineWebPage("chatPage",1,4,x-1,y-4,"page")
+form.add.text("chatPage",1,3,"Url:")
+form.add.specRead("chatPage",5,3,form.specRead.getText("homePage","URL"),"",x-18,goToPage,"URL")
+form.add.button("chatPage",x-7,3,"GO!",function()sss=true goToPage() end)
+form.add.text("chatPage",x-8,3,"|")
+formChange("chatPage")
+form.mineWebPage.clear("chatPage","page")
+local function update()
+while true do
+rednet.send(chatId, "RLD!:")
+local id, text = rednet.receive(10)
+if sss then sss=false return end
+if id==chatId then
+form.mineWebPage.clear("chatPage","page")
+if string.sub(text,1,5)=="BAN!:" then
+form.mineWebPage.addString("chatPage","page","You are baned!")
+end
+local drop = stringToTable(text)
+for i=1,#drop-1 do
+form.mineWebPage.addString("chatPage","page",drop[i])
+end
+formsUpdate()
+end
+sleep(1)
+if sss then sss=false return end
+end
+end
+local function press()
+local msg = form.specRead.getText("chatPage","msg")
+rednet.send(chatId, "MSG!:"..msg)
+end
+form.add.text("chatPage",1,y,"You massege:")
+form.add.specRead("chatPage",13,y,"","",x-18,press,"msg")
+addFunctionToRun(update)
+end
+
+for n,side in pairs(rs.getSides()) do   
+rednet.open(side)
+end
+local function find()
+local function get(ind)
+rednet.send(ind,"DNS?:")
+id, msg = rednet.receive(0.5)
+if id~=ind and id~=nil then get() else
+if msg=="TRUE:" then
+return true
+end
+end
+end
+local function stop()
+stopFind=true
+formChange("findDns1")
+end
+a=form.numbRead.getText("findDns1","FIR")
+b=form.numbRead.getText("findDns1","SEC")
+formRegister("findDns")
+local x,y=term.getSize()
+form.add.mineWebPage("findDns",1,3,x-1,y-3,"log")
+form.add.button("findDns",1,y,"Stop",stop)
+formChange("findDns")
+for i=a,b do
+if stopFind then stopFind=false return end
+if get(i) then
+dnsId=i
+break
+else
+form.mineWebPage.addString("findDns","log",i..":Not found")
+end
+end
+if dnsId==nil then 
+form.mineWebPage.addString("findDns","log","DNS not found")
+else
+register.new("MinecraftWeb.browser.dnsId",dnsId)
+goToPage()
+end
+end
+local x,y=term.getSize()
+formRegister("findDns1")
+form.add.text("findDns1",1,y/2,"Where to start the search:")
+form.add.text("findDns1",1,y/2+1,"Where to finish the search:")
+form.add.numbRead("findDns1",23,y/2,"0","",10,"FIR")
+form.add.numbRead("findDns1",23,y/2+1,"100","",10,"SEC")
+form.add.button("findDns1",x/2-2,y/2-1,"Find",find)
+formRegister("ban")
+form.add.text("ban",1,3,"You banned from a DNS server")
+form.add.button("ban",1,4,"Found a new DNS server",function() formChange("findDns1") end)
+formRegister("homePage")
+form.add.mineWebPage("homePage",1,4,x-1,y-4,"page")
+form.add.text("homePage",1,3,"Url:")
+form.add.specRead("homePage",5,3,"http://","",x-18,goToPage,"URL")
+form.add.button("homePage",x-7,3,"GO!",goToPage)
+form.add.text("homePage",x-8,3,"|")
+if register.get("MinecraftWeb.browser.dnsId")==nil then
+formChange("findDns1")
+else
+goToPage()
+dnsId = tonumber(register.get("MinecraftWeb.browser.dnsId"))
+end
+end
+
+
+function main2(arg)
+mineWeb={}
+function load()
+if not fs.exists("MWDS.save") then
+file = io.open("MWDS.save", "w")
+file:write("mineWeb.bans={\"\"} \n mineWeb.site={\"\"} \n mineWeb.ids={\"\"}")
+file:close()
+end
+dofile("MWDS.save")
+end
+
+function save()
+file = io.open("MWDS.save", "w")
+file:write("mineWeb.bans={\"\"")
+for i=2,#mineWeb.bans do
+if mineWeb.bans[i]~="" then
+file:write(","..mineWeb.bans[i])
+end
+end
+file:write("} \n")
+file:write("mineWeb.site={\"\"")
+for i=2,#mineWeb.site do
+file:write(",\""..mineWeb.site[i].."\"")
+end
+file:write("} \n")
+file:write("mineWeb.ids={\"\"")
+for i=2,#mineWeb.ids do
+file:write(","..mineWeb.ids[i])
+end
+file:write("} \n")
+file:close()
+end
+load()
+
+function siteList (siteName)
+for i=1,#mineWeb.site do
+if mineWeb.site[i]==siteName then
+return mineWeb.ids[i]
+end
+end
+return "SNF"
+end
+
+function blackList(userId)
+for i=1,#mineWeb.bans do
+if tostring(mineWeb.bans[i])==tostring(userId) then
+return true
+end
+end
+end
+
+function settings()
+local function back()
+formChange("main")
+end
+local function addUser()
+local function add()
+user = form.numbRead.getText("addUs","us")
+if user~="" then 
+mineWeb.bans[#mineWeb.bans+1]=user
+save()
+end
+formChange("SETTINGS")
+end
+local function back()
+formChange("SETTINGS")
+end
+formRegister("addUs")
+form.add.text("addUs",1,3,"Enter the ID of the computer:")
+form.add.numbRead("addUs",1,4,"","",10,"us")
+form.add.button("addUs",1,5,"To make a black list",add)
+form.add.button("addUs",26,5,"Back",back)
+formChange("addUs")
+end
+local function addSite()
+local function add()
+id = form.numbRead.getText("addS","id")
+site = form.read.getText("addS","url")
+if id~="" and url~="" then 
+mineWeb.ids[#mineWeb.ids+1]=id
+mineWeb.site[#mineWeb.site+1]=site
+save()
+end
+formChange("SETTINGS")
+end
+local function back()
+formChange("SETTINGS")
+end
+formRegister("addS")
+form.add.text("addS",1,3,"Enter the ID of the computer site:")
+form.add.numbRead("addS",1,4,"","",10,"id")
+form.add.text("addS",1,5,"Enter the URL of the site:")
+form.add.read("addS",1,6,"","",10,"url")
+form.add.button("addS",1,7,"Add site",add)
+form.add.button("addS",17,7,"Back",back)
+formChange("addS")
+end
+
+local function remUser()
+local function back()
+formChange("SETTINGS")
+end
+local function rem()
+id = form.numbRead.getText("remU","id")
+if id=="" then return end
+sBans=mineWeb.bans
+for i=#mineWeb.bans,2,-1 do
+if tostring(mineWeb.bans[i])==tostring(id) then
+table.remove(sBans,i)
+end
+end
+mineWeb.bans=sBans
+save()
+formChange("SETTINGS")
+end
+formRegister("remU")
+local x,y=term.getSize()
+form.add.mineWebPage("remU",1,3,x-1,y-3,"users")
+for i=2,#mineWeb.bans do
+form.mineWebPage.addString("remU","users",mineWeb.bans[i])
+end
+form.add.numbRead("remU",1,y,"","",10,"id")
+form.add.button("remU",15,y,"Delete",rem)
+form.add.button("remU",25,y,"Back",back)
+formChange("remU")
+end
+local function remSite()
+local function back()
+formChange("SETTINGS")
+end
+local function rem()
+url = form.read.getText("remU","id")
+if url=="" then return end
+sSite=mineWeb.site
+sIds=mineWeb.ids
+for i=#mineWeb.site,2,-1 do
+if tostring(mineWeb.site[i])==tostring(url) then
+table.remove(sSite,i)
+table.remove(sIds,i)
+end
+end
+mineWeb.site=sSite
+mineWeb.ids=sIds
+save()
+formChange("SETTINGS")
+end
+formRegister("remU")
+local x,y=term.getSize()
+form.add.mineWebPage("remU",1,3,x-1,y-3,"users")
+for i=2,#mineWeb.site do
+form.mineWebPage.addString("remU","users",mineWeb.site[i])
+form.mineWebPage.addString("remU","users",mineWeb.ids[i])
+end
+form.add.read("remU",1,y,"","",10,"id")
+form.add.button("remU",15,y,"Удалить",rem)
+form.add.button("remU",25,y,"Назад",back)
+formChange("remU")
+end
+local x,y=term.getSize()
+formRegister("SETTINGS")
+form.add.button("SETTINGS",1,3,"Add site",addSite)
+form.add.button("SETTINGS",1,4,"Add user into black list",addUser)
+form.add.button("SETTINGS",1,5,"Delete site",remSite)
+form.add.button("SETTINGS",1,6,"To remove a user from the black list",remUser)
+form.add.button("SETTINGS",1,y,"Back",back)
+formChange("SETTINGS")
+end
+
+formRegister("main")
+for n,side in pairs(rs.getSides()) do   
+rednet.open(side)
+end
+local x,y=term.getSize()
+form.add.mineWebPage("main",1,3,x-1,y-2,"log")
+form.add.button("main",x-24,1,"Settings",settings)
+function serv()
+while true do
+id, url = rednet.receive()
+if not blackList(id) then
+if url=="DNS?:" then servId="TRUE:" else
+servId = siteList(url)
+end
+else
+servId = "BAN!:"
+end
+form.mineWebPage.addString("main","log","Computer "..id.." need URL "..url.." return "..servId)
+rednet.send(id, tostring(servId))
+end
+end
+addFunctionToRun(serv)
+formChange("main")
+end
+
+function main3(arg)
+mineWeb={}
+function load()
+if not fs.exists("C\\MinecraftWeb\\pages") then
+fs.makeDir("C\\MinecraftWeb\\pages")
+end
+if not fs.exists("C\\MinecraftWeb\\pages\\404") then
+file = io.open("C\\MinecraftWeb\\pages\\404", "w")
+file:write("Error 404 \nPage not found")
+file:close()
+end
+if not fs.exists("C\\MinecraftWeb\\pages\\main") then
+file = io.open("C\\MinecraftWeb\\pages\\main", "w")
+file:write("Site main page")
+file:close()
+end
+if not fs.exists("C\\MinecraftWeb\\files") then
+fs.makeDir("C\\MinecraftWeb\\files")
+end
+if not fs.exists("MWWS.save") then
+file = io.open("MWWS.save", "w")
+file:write("mineWeb.bans={\"\"} \n mineWeb.site={\"\"} \n mineWeb.ids={\"\"}")
+file:close()
+end
+dofile("MWWS.save")
+end
+
+function save()
+file = io.open("MWWS.save", "w")
+file:write("mineWeb.bans={\"\"")
+for i=2,#mineWeb.bans do
+if mineWeb.bans[i]~="" then
+file:write(","..mineWeb.bans[i])
+end
+end
+file:write("} \n")
+file:write("mineWeb.site={\"\"")
+for i=2,#mineWeb.site do
+file:write(",\""..mineWeb.site[i].."\"")
+end
+file:write("} \n")
+file:write("mineWeb.ids={\"\"")
+for i=2,#mineWeb.ids do
+file:write(","..mineWeb.ids[i])
+end
+file:write("} \n")
+file:close()
+end
+load()
+
+function blackList(userId)
+for i=1,#mineWeb.bans do
+if tostring(mineWeb.bans[i])==tostring(userId) then
+return true
+end
+end
+end
+
+function settings()
+local function back()
+formChange("main")
+end
+local function addUser()
+local function add()
+user = form.numbRead.getText("addUs","us")
+if user~="" then 
+mineWeb.bans[#mineWeb.bans+1]=user
+save()
+end
+formChange("SETTINGS")
+end
+local function back()
+formChange("SETTINGS")
+end
+formRegister("addUs")
+form.add.text("addUs",1,3,"Enter the ID of the computer:")
+form.add.numbRead("addUs",1,4,"","",10,"us")
+form.add.button("addUs",1,5,"To make a black list",add)
+form.add.button("addUs",26,5,"Back",back)
+formChange("addUs")
+end
+local function addSite()
+local function add()
+id = form.numbRead.getText("addS","id")
+site = form.read.getText("addS","url")
+if id~="" and url~="" then 
+mineWeb.ids[#mineWeb.ids+1]=id
+mineWeb.site[#mineWeb.site+1]=site
+save()
+end
+formChange("SETTINGS")
+end
+local function back()
+formChange("SETTINGS")
+end
+formRegister("addS")
+form.add.text("addS",1,3,"Enter the ID of the computer chat server:")
+form.add.numbRead("addS",1,4,"","",10,"id")
+form.add.text("addS",1,5,"Enter the name of the page:")
+form.add.read("addS",1,6,"","",10,"url")
+form.add.button("addS",1,7,"Add chat server",add)
+form.add.button("addS",23,7,"Back",back)
+formChange("addS")
+end
+
+local function remUser()
+local function back()
+formChange("SETTINGS")
+end
+local function rem()
+id = form.numbRead.getText("remU","id")
+if id=="" then return end
+sBans=mineWeb.bans
+for i=#mineWeb.bans,2,-1 do
+if tostring(mineWeb.bans[i])==tostring(id) then
+table.remove(sBans,i)
+end
+end
+mineWeb.bans=sBans
+save()
+formChange("SETTINGS")
+end
+formRegister("remU")
+local x,y=term.getSize()
+form.add.mineWebPage("remU",1,3,x-1,y-3,"users")
+for i=2,#mineWeb.bans do
+form.mineWebPage.addString("remU","users",mineWeb.bans[i])
+end
+form.add.numbRead("remU",1,y,"","",10,"id")
+form.add.button("remU",15,y,"Delete",rem)
+form.add.button("remU",25,y,"Back",back)
+formChange("remU")
+end
+local function remSite()
+local function back()
+formChange("SETTINGS")
+end
+local function rem()
+url = form.read.getText("remU","id")
+if url=="" then return end
+sSite=mineWeb.site
+sIds=mineWeb.ids
+for i=#mineWeb.site,2,-1 do
+if tostring(mineWeb.site[i])==tostring(url) then
+table.remove(sSite,i)
+table.remove(sIds,i)
+end
+end
+mineWeb.site=sSite
+mineWeb.ids=sIds
+save()
+formChange("SETTINGS")
+end
+formRegister("remU")
+local x,y=term.getSize()
+form.add.mineWebPage("remU",1,3,x-1,y-3,"users")
+for i=2,#mineWeb.site do
+form.mineWebPage.addString("remU","users",mineWeb.site[i])
+form.mineWebPage.addString("remU","users",mineWeb.ids[i])
+end
+form.add.read("remU",1,y,"","",10,"id")
+form.add.button("remU",15,y,"Delete",rem)
+form.add.button("remU",25,y,"Back",back)
+formChange("remU")
+end
+local x,y=term.getSize()
+formRegister("SETTINGS")
+form.add.button("SETTINGS",1,3,"Add chat server",addSite)
+form.add.button("SETTINGS",1,4,"Add user into black list",addUser)
+form.add.button("SETTINGS",1,5,"Delete chat server",remSite)
+form.add.button("SETTINGS",1,6,"To remove a user from the black list",remUser)
+form.add.button("SETTINGS",1,y,"Back",back)
+formChange("SETTINGS")
+end
+
+local function getPage(page)
+file = io.open(page, "r")
+text=file:read("*a")
+file:close()
+return text
+end
+
+formRegister("main")
+for n,side in pairs(rs.getSides()) do   
+rednet.open(side)
+end
+local x,y=term.getSize()
+form.add.mineWebPage("main",1,3,x-1,y-2,"log")
+form.add.button("main",x-24,1,"Settings",settings)
+function serv()
+while true do
+id, url = rednet.receive()
+page = string.gsub (url,"\/","\\")
+if not blackList(id) then
+if fs.exists("pages\\"..page) then
+pt = getPage("pages\\"..page)
+pt="PAGE:"..pt
+elseif fs.exists("files\\"..page) then
+pt = getPage("files\\"..page)
+pt="FILE:"..pt
+else
+find=false
+for i=2,#mineWeb.site do
+if mineWeb.site[i]==page then
+pt = "CHAT:"..mineWeb.ids[i]
+find=true
+end
+end
+if not find then
+pt = getPage("pages\\404.php")
+pt="PAGE:"..pt
+end
+end
+else
+pt = "BAN!:"
+end
+form.mineWebPage.addString("main","log","Computer "..id.." need page "..page)
+rednet.send(id, pt)
+end
+end
+addFunctionToRun(serv)
+formChange("main")
+end
+
+function main4(arg)
+mineWeb={}
+function load()
+if not fs.exists("MWCS.save") then
+file = io.open("MWCS.save", "w")
+file:write("mineWeb.bans={\"\"}")
+file:close()
+end
+dofile("MWCS.save")
+end
+
+function save()
+file = io.open("MWCS.save", "w")
+file:write("mineWeb.bans={\"\"")
+for i=2,#mineWeb.bans do
+if mineWeb.bans[i]~="" then
+file:write(","..mineWeb.bans[i])
+end
+end
+file:write("} \n")
+file:close()
+end
+load()
+
+
+function blackList(userId)
+for i=1,#mineWeb.bans do
+if tostring(mineWeb.bans[i])==tostring(userId) then
+return true
+end
+end
+end
+
+function settings()
+local function back()
+formChange("main")
+end
+local function addUser()
+local function add()
+user = form.numbRead.getText("addUs","us")
+if user~="" then 
+mineWeb.bans[#mineWeb.bans+1]=user
+save()
+end
+formChange("SETTINGS")
+end
+local function back()
+formChange("SETTINGS")
+end
+formRegister("addUs")
+form.add.text("addUs",1,3,"Enter the ID of the computer")
+form.add.numbRead("addUs",1,4,"","",10,"us")
+form.add.button("addUs",1,5,"To make a black list",add)
+form.add.button("addUs",26,5,"Back",back)
+formChange("addUs")
+end
+local function remUser()
+local function back()
+formChange("SETTINGS")
+end
+local function rem()
+id = form.numbRead.getText("remU","id")
+if id=="" then return end
+sBans=mineWeb.bans
+for i=#mineWeb.bans,2,-1 do
+if tostring(mineWeb.bans[i])==tostring(id) then
+table.remove(sBans,i)
+end
+end
+mineWeb.bans=sBans
+save()
+formChange("SETTINGS")
+end
+formRegister("remU")
+local x,y=term.getSize()
+form.add.mineWebPage("remU",1,3,x-1,y-3,"users")
+for i=2,#mineWeb.bans do
+form.mineWebPage.addString("remU","users",mineWeb.bans[i])
+end
+form.add.numbRead("remU",1,y,"","",10,"id")
+form.add.button("remU",15,y,"Delete",rem)
+form.add.button("remU",25,y,"Back",back)
+formChange("remU")
+end
+local x,y=term.getSize()
+formRegister("SETTINGS")
+form.add.button("SETTINGS",1,3,"Add user into black list",addUser)
+form.add.button("SETTINGS",1,4,"To remove a user from the black list",remUser)
+form.add.button("SETTINGS",1,y,"Back",back)
+formChange("SETTINGS")
+end
+chatHistori=""
+formRegister("main")
+for n,side in pairs(rs.getSides()) do   
+rednet.open(side)
+end
+local x,y=term.getSize()
+form.add.mineWebPage("main",1,3,x-1,y-2,"log")
+form.add.button("main",x-24,1,"Settings",settings)
+function serv()
+while true do
+if #chatHistori>200 then
+ind = string.find(chatHistori,"\n")
+if ind then chatHistori=string.sub(chatHistori,ind+1) end
+end
+id, msg = rednet.receive()
+if not blackList(id) then
+if string.sub(msg,1,5) == "RLD!:" then
+rednet.send(id, chatHistori)
+elseif string.sub(msg,1,5) ~= "MSG!:" then
+rednet.send(id, "CHAT:"..os.computerID())
+elseif string.sub(msg,1,5) == "MSG!:" then
+chatHistori = chatHistori..id..":"..string.sub(msg,6).."\n"
+rednet.send(id, chatHistori)
+form.mineWebPage.addString("main","log",id..":"..string.sub(msg,6))
+end
+else
+rednet.send(id, "BAN!:")
+end
+end
+end
+addFunctionToRun(serv)
+formChange("main")
+end
+
+function main()
+formRegister("select")
+form.add.button("select",1,3,"Browser",function() MineXLuaInit(main1,"Minecraft Web Browser")end)
+form.add.button("select",1,4,"DNS Server",function() MineXLuaInit(main2,"Minecraft Web DNS Server")end)
+form.add.button("select",1,5,"Web Server",function() MineXLuaInit(main3,"Minecraft Web Web Server")end)
+form.add.button("select",1,6,"Chat Server",function() MineXLuaInit(main4,"Minecraft Web Chat Server")end)
+formChange("select")
+end
+
+MineXLuaInit(main,"Minecraft Web")

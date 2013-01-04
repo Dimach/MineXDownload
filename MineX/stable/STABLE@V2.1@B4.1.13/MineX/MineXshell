@@ -1,0 +1,174 @@
+local ECHO="nil"
+local currentPathE="C://"
+local currentPath="C"
+local labels={}
+local iLine=1
+local runProgram=false
+MineX.shell={}
+
+
+
+function extractPath(pathE)
+currentPath=pathE
+end
+
+local function echo(str)
+if ECHO=="nil" then
+form.memo.addString("System.shell","shell",str)
+else
+f=io.open(ECHO,"a")
+f:write(str.."\n")
+f:close()
+end
+end
+
+MineX.shell.commandTable={}
+MineX.shell.commandTable["help"]=function() for i,p in pairs(MineX.shell.commandTable) do echo(i) end end
+MineX.shell.commandTable["cd"]=function(p) 
+if p=="" or p==" " then 
+echo(">>!Unknown path!<<") 
+elseif p=="\\" then
+
+
+else
+extractPath(p)
+currentPathE=p
+end
+end
+MineX.shell.commandTable["list"]=function()
+local tAll = fs.list( currentPath )
+local tFiles = {}
+local tDirs = {}
+for n, sItem in pairs( tAll ) do
+	if string.sub( sItem, 1, 1 ) ~= "." then
+		local sPath = fs.combine( currentPath, sItem )
+		if fs.isDir( sPath ) then
+			table.insert( tDirs, sItem )
+		else
+			table.insert( tFiles, sItem )
+		end
+	end
+end
+table.sort( tDirs )
+table.sort( tFiles )
+echo("===DIRS===")
+for i=1,#tDirs do
+echo(tDirs[i])
+end
+echo("===FILES===")
+for b=1,#tFiles do
+echo(tFiles[b])
+end
+end
+MineX.shell.commandTable["delete"]=function(p)
+fs.delete(currentPath.."/"..p)
+end
+MineX.shell.commandTable["cut"]=function(p)
+
+end
+MineX.shell.commandTable["copy"]=function(p)
+
+end
+MineX.shell.commandTable["paste"]=function(p)
+
+end
+MineX.shell.commandTable["@echoto"]=function(p)
+ECHO=p
+end
+MineX.shell.commandTable["@echo"]=function(...)
+local a={...}
+
+form.memo.addString("System.shell","shell",table.concat (a," "))
+
+end
+MineX.shell.commandTable["exit"]=function(p)
+programStop()
+end
+MineX.shell.commandTable["goto"]=function(p)
+iLine=labels[p]
+end
+MineX.shell.commandTable[":label"]=function(p)
+labels[p]=iLine
+end
+MineX.shell.commandTable["open"]=function(p) 
+MineX.shell.commandTable["openGlobal"](currentPath.."/"..p) 
+end
+MineX.shell.commandTable["openGlobal"]=function(p)
+local appFunc = function()
+local func = function()
+dofile(p)
+end
+local tFenv=getfenv(func)
+tFenv.print=function(str) form.memo.addString("System.shell","shell",tostring(str)) end
+tFenv.write=function(str) form.memo.addSymbol("System.shell","shell",tostring(str)) end
+tFenv.read=function() runProgram=true while true do local a,b = coroutine.yield("programRead") if a=="programRead" then return b end end end
+setfenv(func,tFenv)
+func()
+runProgram=false
+end
+addFunctionToRun(appFunc,nil,"RunedProgram")
+end
+MineX.shell.commandTable["exec"]=function(p)
+MineX.shell.shellExec()
+MineX.shell.shellScriptExec(currentPath.."/"..p)
+end
+MineX.shell.commandTable["run"]=function(p)
+dofile(currentPath.."/"..p)
+end
+
+
+
+local function accept(cmd)
+for i,p in pairs(MineX.shell.commandTable) do
+
+if i == cmd then
+return true
+end
+end
+echo(">>!Unknown command!<<")
+return false
+end
+
+local function command(cmd,...)
+echo(users[1][1].."@"..currentPathE..">"..cmd)
+if accept(cmd) then
+MineX.shell.commandTable[cmd](...)
+end
+end
+
+local function send()
+if runProgram then
+coroutine.resume(getTread("RunedProgram"),"programRead",form.specRead.getText("System.shell","command"))
+runProgram=false
+else
+command(unpack(wordsToTable(form.specRead.getText("System.shell","command"))))
+end
+end
+
+local function exec(text)
+command(unpack(wordsToTable(text)))
+end
+
+
+
+function MineX.shell.shellExec()
+formRegister("System.shell")
+local x,y=term.getSize()
+form.add.memo("System.shell",1,3,x-1,y-3,"shell")
+form.add.specRead("System.shell",1,y,"","",x-12,send,"command")
+form.add.button("System.shell",x-7,y,"SEND",send,"","",28)
+
+formChange("System.shell")
+
+end
+
+function MineX.shell.shellScriptExec(path)
+local file=io.open(path,"r")
+local script=stringToTable(file:read("*a"))
+file:close()
+while iLine<=#script do 
+exec(script[iLine])
+iLine=iLine+1
+end
+end
+
