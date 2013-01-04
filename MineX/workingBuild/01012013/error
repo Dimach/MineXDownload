@@ -1,18 +1,4 @@
 term.clear()
 term.setCursorPos(1,1)
-
-print("Серобуромалинавый экран детектед")
-print("Seroburomalinovi ekran detected")
-sleep(3)
-for i=1,1 do
-print("Бля!Все сломалось нахуй!")
-print("Blya!Vse slomalos nahuy!")
-sleep(1)
-
-
-end
-term.clear()
-term.setCursorPos(1,1)
-print("Полный пиздец!!!")
-print("Polnui pizdec!!!")
-sleep(2)
+print("Фатальная ошибка ос")
+print(param)
