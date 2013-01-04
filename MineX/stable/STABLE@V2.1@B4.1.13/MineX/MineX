@@ -266,6 +266,7 @@ form.multiPage.addButton("System.start","System.start",1,6,"CLOSE",back,"","",28
 
 end
 
+
 function MineX.cp()
 function calsl()
 
@@ -406,10 +407,10 @@ end
 local function upc()
 formRegister("System.cp.upc")
 local function getHost()
-if register.get("config.host")=="http://industrialserver.ru/MineX" then
-return "Current host: IcSrv MineX[Stable]"
-elseif register.get("config.host")=="http://industrialserver.ru/MineXbeta" then
-return "Current host: IcSrv MineX[BETA]"
+if register.get("config.host")=="https://raw.github.com/Dimach/MineXDownload/master/MineX/stable" then
+return "Current host: GitHub MineXDownload[Stable]"
+elseif register.get("config.host")=="https://raw.github.com/Dimach/MineXDownload/master/MineX/unstable" then
+return "Current host: GitHub MineXDownload[Unstable]"
 else
 return "Current host: Unknown"
 end
@@ -473,6 +474,7 @@ form.add.button("System.cp",1,4,"Update control",upc,"","",28)
 form.add.button("System.cp",1,5,"Language control",lc,"","",28)
 formChange("System.cp")
 end
+
 
 
 function MineX.shutdownMenu(vAct,vBack)
