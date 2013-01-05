@@ -25,7 +25,7 @@ if register.get("config.host")==nil then
 register.new("config.host","https://raw.github.com/Dimach/MineXDownload/master/MineX/stable")
 
 end
-if not register.get("config.ver")==MineX.httpversion then
+if register.get("config.ver")~=MineX.httpversion then
 register.new("config.ver",MineX.httpversion)
 
 end
@@ -41,8 +41,7 @@ end
 dofile("RegisterDef")
 
 
-function attachLogger(tableForLog)
-
+function attachLogger()
 
 end
 
@@ -243,6 +242,11 @@ local function fs()
 MineXLuaInit(MineX.fs,"FS")
 
 end
+local function app()
+
+MineXLuaInit(MineX.AppStarter,"AppS")
+
+end
 local function cp()
 
 MineXLuaInit(MineX.cp,"CP")
@@ -256,13 +260,14 @@ end
 
 
 formRegister("System.start")
-form.add.multiPage("System.start",pos[1],pos[2],7,20,"System.start")
+form.add.multiPage("System.start",pos[1],pos[2],8,20,"System.start")
 form.multiPage.addText("System.start","System.start",2,2,"User is "..users[1][1])
 form.multiPage.addButton("System.start","System.start",1,3,"MY COMPUTER",fs,"","",28)
-form.multiPage.addButton("System.start","System.start",1,4,"CONTROL PANEL",cp,"","",28)
-form.multiPage.addButton("System.start","System.start",1,5,"SHUTDOWN",function() MineX.shutdownMenu("System.desktop","nil") end,"","",28)
+form.multiPage.addButton("System.start","System.start",1,4,"APPLICATIONS",app,"","",28)
+form.multiPage.addButton("System.start","System.start",1,5,"CONTROL PANEL",cp,"","",28)
+form.multiPage.addButton("System.start","System.start",1,6,"SHUTDOWN",function() MineX.shutdownMenu("System.desktop","nil") end,"","",28)
 --form.multiPage.addButton("System.start","System.start",1,6,"REBOOT",os.reboot,"","",28)
-form.multiPage.addButton("System.start","System.start",1,6,"CLOSE",back,"","",28)
+form.multiPage.addButton("System.start","System.start",1,7,"CLOSE",back,"","",28)
 
 end
 
@@ -376,7 +381,7 @@ strTable[i]=strTable[i].."\n"
 
 end
 for a=1,#strTable do
-if findfromback(strTable[a],users[1][1]) then
+if findfromback(strTable[a],"\""..users[1][1].."\"") then
 strTable[a]=""
 end
 end
@@ -518,7 +523,7 @@ sleep(10)
 end
 end
 )
-MineX.startMenu({1,Form.maxY-7})
+MineX.startMenu({1,Form.maxY-8})
 
 formChange("System.desktop")
 ------------------------------------------------------------------
@@ -536,12 +541,16 @@ MineX.infoMsg({"Welcome to MineX OS","Welcome "..users[gg][1]},"System.lock",Min
 users={users[gg]}
 fs.makeDir("C\\Users\\"..users[1][1])
 fs.makeDir("C\\Users\\"..users[1][1].."\\Desktop")
+fs.makeDir("C\\Users\\"..users[1][1].."\\Programs")
 f=io.open("C\\Users\\"..users[1][1].."\\.folder","w")
 f:write("userNameOnly")
 f:close()
-mxweb=io.open("C\\Users\\"..users[1][1].."\\Desktop\\Minecraft WEB Browser","w")
-mxweb:write("dofile(\"mxweb\")")
-mxweb:close()
+MineX.createDirInPrograms("Standart")
+MineX.createLinkInPrograms("Minecraft WEB","Standart","mxweb")
+MineX.createLinkInPrograms("MineXshell","Standart","MineX/MineXshellExec")
+--mxweb=io.open("C\\Users\\"..users[1][1].."\\Desktop\\Minecraft WEB Browser","w")
+--mxweb:write("dofile(\"mxweb\")")
+--mxweb:close()
 else
 
 local function check()
@@ -551,12 +560,16 @@ MineX.infoMsg({"Welcome to MineX OS","Welcome "..users[gg][1]},"nil",MineX.main)
 users={users[gg]}
 fs.makeDir("C\\Users\\"..users[1][1])
 fs.makeDir("C\\Users\\"..users[1][1].."\\Desktop")
+fs.makeDir("C\\Users\\"..users[1][1].."\\Programs")
 f=io.open("C\\Users\\"..users[1][1].."\\.folder","w")
 f:write("userNameOnly")
 f:close()
-mxweb=io.open("C\\Users\\"..users[1][1].."\\Desktop\\Minecraft WEB Browser","w")
-mxweb:write("dofile(\"mxweb\")")
-mxweb:close()
+MineX.createDirInPrograms("Standart")
+MineX.createLinkInPrograms("Minecraft WEB","Standart","mxweb")
+MineX.createLinkInPrograms("MineXshell","Standart","MineX/MineXshellExec")
+--mxweb=io.open("C\\Users\\"..users[1][1].."\\Desktop\\Minecraft WEB Browser","w")
+--mxweb:write("dofile(\"mxweb\")")
+--mxweb:close()
 else
 MineX.infoMsg({"WARNING !!!","PASSWORD INCORRECT !!!"},"nil",MineX.lock)
 
@@ -606,6 +619,7 @@ formChange("System.lock")
 
 end
 
+dofile("MineX/AppStarter")
 
 dofile("MineX/FS")
 

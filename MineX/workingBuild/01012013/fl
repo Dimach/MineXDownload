@@ -19,5 +19,6 @@ fileslist={
 {"BOOTUP.txt","BOOTUP.txt"},
 {"RegisterDef","RegisterDef"},
 {"MineX/MineXshell","MineX/MineXshell"},
-{"MineX/MineXshellExec","MineX/MineXshellExec"}
+{"MineX/MineXshellExec","MineX/MineXshellExec"},
+{"MineX/AppStarter","MineX/AppStarter"}
 }
