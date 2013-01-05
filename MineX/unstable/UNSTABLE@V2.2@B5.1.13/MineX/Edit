@@ -1,0 +1,43 @@
+function main(path)
+fir=2
+function save()
+file=io.open(path,"w")
+file:write(lastText)
+file:close()
+end
+function rebuild(text)
+lastText=text
+drop = stringToTable(text)
+local pos=0
+local lastX=0
+formRegister("edit")
+local x,y=term.getSize()
+form.add.button("edit",x-20,1,"SAVE",save)
+for n=1,#drop do
+pos=pos+1
+if n+2 > fir and n+2 < fir+y-1 then form.add.editSpecFrame("edit",0,n+4-fir," ",string.sub(text,1,pos-1),string.sub(text,pos),lastX,nil,#drop) end
+for i=1,#drop[n]-1 do
+if n+2 > fir and n+2 < fir+y-1 then  form.add.editFrame("edit",i,n+4-fir,string.sub(drop[n],i,i),string.sub(text,1,pos-1),string.sub(text,pos+1),nil,string.sub(text,pos,pos),#drop) end
+pos=pos+1
+lastX=i
+end
+end
+formChange("edit")
+end
+file = io.open(path,"r")
+if file then
+text = file:read("*a")
+file:close()
+else
+text=""
+end
+rebuild(text)
+end
+
+function count()
+
+end
+
+function startEditing(path)
+MineXLuaInit(function() main(path) end,"test")
+end
