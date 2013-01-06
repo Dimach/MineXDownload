@@ -1,4 +1,21 @@
 
+function ifnotnil(arg,def)
+if arg and arg~={} then
+return arg
+else
+return def
+end
+end
+
+local function setColor(clr1,clr2)
+term.setTextColor(ifnotnil(clr1,colors.gray))
+term.setBackgroundColor(ifnotnil(clr2,colors.lightGray))
+end
+
+local function setDefColor()
+term.setTextColor(colors.gray)
+term.setBackgroundColor(colors.lightGray)
+end
 
 function buttonPrint(arg,asSelected)
 x = arg[1]
@@ -15,21 +32,66 @@ msg = arg[5]
 end
 if asSelected then
 term.setCursorPos(x,y)
+
+if term.isColor() then
+if arg[8] then
+
+setColor(arg[8][3],arg[8][4])
+else
+setDefColor()
+
+end
+end
 term.write(">["..text.."]<")
+if term.isColor() then
+term.setTextColor(colors.white)
+term.setBackgroundColor(colors.black)
+end
+
 term.setCursorPos(x,y-1)
+if term.isColor() then
+if arg[8] then
+
+setColor(arg[8][5],arg[8][6])
+else
+setDefColor()
+
+end
+end
 term.write(msg)
+if term.isColor() then
+term.setTextColor(colors.white)
+term.setBackgroundColor(colors.black)
+end
+
 else
 term.setCursorPos(x+1,y)
+if term.isColor() then
+if arg[8] then
+
+setColor(arg[8][1],arg[8][2])
+else
+setDefColor()
+
+end
+end
 term.write("["..text.."]")
+if term.isColor() then
+term.setTextColor(colors.white)
+term.setBackgroundColor(colors.black)
+end
+
 end
 end
 
-function buttonAdd(x,y,text,associative,msg,index,key)
+function buttonAdd(x,y,text,associative,msg,index,key,colorTable)
 if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
 if text==nil then text="" elseif msg==nil then msg="" end
 if type(associative)~="function" then error("Error #011:Исполняемый код не обнаружен") end
 if type(key)~="number" then key=28 end
-return {x,y,text,associative,msg,key,index}
+
+return {x,y,text,associative,msg,key,index,colorTable}
+
 end
 
 function buttonEventUpdate(events,arg)
@@ -112,13 +174,23 @@ else
 text = arg[3]
 end
 term.setCursorPos(x,y)
+if arg[5] then
+if term.isColor() then
+term.setTextColor(ifnotnil(arg[5][1],colors.gray))
+term.setBackgroundColor(ifnotnil(arg[5][2],colors.lightGray))
+end
+end
 term.write(text)
+if term.isColor() then
+term.setTextColor(colors.white)
+term.setBackgroundColor(colors.black)
+end
 end
 
-function textAdd(x,y,text,index)
+function textAdd(x,y,text,index,colorTable)
 if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
 if text==nil then text="" end
-return {x,y,text,index}
+return {x,y,text,index,colorTable}
 end
 
 function progresPrint(arg,asSelected)
