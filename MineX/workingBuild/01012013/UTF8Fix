@@ -1,10 +1,10 @@
-ruFixData = {"\ ","-","\!","\"","\#","\$","\%","\&","\'","\(","\)","\*","\+","\,","\—","\.","\/","0","1","2","3","4","5","6","7","8","9","\:","\;","\<","\=","\>","\?","\@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","\[","\\","\]","\^","\_","\`","\{","\|","\}","\~","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"}
+UTF8FixData = {"\ ","-","\!","\"","\#","\$","\%","\&","\'","\(","\)","\*","\+","\,","\—","\.","\/","0","1","2","3","4","5","6","7","8","9","\:","\;","\<","\=","\>","\?","\@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","\[","\\","\]","\^","\_","\`","\{","\|","\}","\~","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"}
 
 function getFixLen(var)
 local i=1
 while i<=#var do
-for n=1,#ruFixData do
-if string.sub(var,i,i)==ruFixData[n] then
+for n=1,#UTF8FixData do
+if string.sub(var,i,i)==UTF8FixData[n] then
 var = string.sub(var,1,i-1).."aa"..string.sub(var,i+1,#var)
 i=i+1
 break
@@ -19,8 +19,8 @@ function fixStringSub(var,fir,sek)
 local i=2
 fir=fir-1
 while i<fir*2 do
-for n=1,#ruFixData do
-if string.sub(var,i,i)==ruFixData[n] then
+for n=1,#UTF8FixData do
+if string.sub(var,i,i)==UTF8FixData[n] then
 var = string.sub(var,1,i-1).."aa"..string.sub(var,i+1,#var)
 i=i+1
 break
@@ -35,8 +35,8 @@ vL=getFixLen(var)*2
 while vL>sSek do
 print(#var.." "..sSek)
 asF=false
-for n=1,#ruFixData do
-if string.sub(var,i,i)==ruFixData[n] then
+for n=1,#UTF8FixData do
+if string.sub(var,i,i)==UTF8FixData[n] then
 var = string.sub(var,1,i-1).."aa"..string.sub(var,i+1,#var)
 sSek=sSek+1
 asF=true
@@ -51,27 +51,3 @@ return string.sub(var,fir*2,-sSek*2)
 
 end
 
--- ololo = 10
-
--- function lol()
--- print(ololo)
--- end
-
--- function s()
--- local ololo=5
--- drop=getfenv(lol)
--- drop.ololo=1
--- f = setfenv(lol,drop)
--- f()
--- print(ololo)
--- ololo=15
--- f()
--- end
--- s()
--- lol()
--- f()
--- sleep(10)
--- aaa={1,1,1,1,1}
--- write(aaa)
--- print(type(rawget(getmetatable(aaa) or {},__add)))
--- write(fixStringSub("qàertyuiop",1,1))

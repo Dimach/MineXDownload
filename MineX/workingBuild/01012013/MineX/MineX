@@ -598,9 +598,6 @@ if not fs.exists("C\\Users\\.users") then
 file=io.open("C\\Users\\.users","w")
 file:write("users={}\n")
 file:write("table.insert(users,{\"Admin\",nil,true})\n")
-
-
---file:write("users[1][2]=\"Guest\"\n")
 file:close()
 fs.makeDir("C\\Users\\Admin")
 fs.makeDir("C\\Users\\Admin\\Desktop")

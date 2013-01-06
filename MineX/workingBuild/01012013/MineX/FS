@@ -61,7 +61,7 @@ path=ar
 list(disk) 
 end
 
-local function amm(ad,key)
+local function amm(ad,key,key2)
 local function open(arg)
 if isDialog then
 setBeckGround("nil")
@@ -74,9 +74,13 @@ register.get("formats.def.")(arg)
 end
 end
 end
+if key~="Mouse" then
 if key~=28 and key~=29 then return end
 if key==28 then if fs.isDir(ad) then an(ad) return else open(ad) return end end
-
+else
+if key2~=1 and key2~=2 then return end
+if key2==1 then if fs.isDir(ad) then an(ad) return else open(ad) return end end
+end
 local function close()
 setBeckGround("nil")
 formChange("FS")
@@ -244,14 +248,13 @@ formChange("NEW")
 end
 
 for i=1,#tDirs do
-function asdf(aaaaaa) amm(path.."\\"..tDirs[i],aaaaaa) end
-form.multiPage.addButton("FS","FS",2,2+i-1,tDirs[i],asdf,"","")
+form.multiPage.addButton("FS","FS",2,2+i-1,tDirs[i],function(arg,arg2) amm(path.."\\"..tDirs[i],arg,arg2) end,"","")
 end
 
 for n=1,#tFiles do
 
 
-form.multiPage.addButton("FS","FS",2,#tDirs+2+n-1,tFiles[n],function(arg) amm(path.."\\"..tFiles[n],arg) end,"","")
+form.multiPage.addButton("FS","FS",2,#tDirs+2+n-1,tFiles[n],function(arg,arg2) amm(path.."\\"..tFiles[n],arg,arg2) end,"","")
 form.multiPage.addText("FS","FS",getFixLen(tFiles[n])+6,#tDirs+2+n-1,"FILE")
 end
 form.multiPage.addButton("FS","FS",2,#tDirs+#tFiles+2,"NEW",new,"","",28)

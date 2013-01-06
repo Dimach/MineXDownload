@@ -147,7 +147,7 @@ event = nil
 prSelMod=false
 end
 
-if event == "char" or event == "key" then
+if event ~= "timer" then
 local ok, param = coroutine.resume( coroutine.create(selectorUpdate), event, p1, p2, p3, p4, p5 )
 if not ok then fail(param) end
 end
@@ -402,9 +402,11 @@ function addProgramRegister(appRegister)
 mass[appIndef]["appRegister"]=appRegister
 end
 
-function printBackGround(formName)
+function printBackGround(formName,sss)
+if not sss then
 term.setCursorBlink(false)
 term.clear()
+end
 if not formName then return end
 if type(formName)=="table" then for i=1,#formName do printBackGround(formName[i]) end return end
 for n=1, #mass["API"]["components"] do
@@ -417,6 +419,19 @@ end
 end
 
 function printAllComponent(formName)
+if term.isColour() then
+printBackGround(formName,true) 
+for n=1, #mass["API"]["components"] do
+name=mass["API"]["components"][n][1]
+cType=mass["API"]["components"][n][2]
+if mass["API"]["components"][n][6]~=nil then
+for i=1,#mass[appIndef]["appForms"][formName]["FormObjects"][cType][name] do
+mass["API"]["components"][n][6](mass[appIndef]["appForms"][formName]["FormObjects"][cType][name][i])
+end
+end
+end
+return
+end
 for n=1, #mass["API"]["components"] do
 name=mass["API"]["components"][n][1]
 cType=mass["API"]["components"][n][2]
@@ -466,6 +481,9 @@ setBeckGround("nil")
 formChange("error")
 else
 dofile("error")
+print(param)
+error()
+error()
 end
 end
 
@@ -484,6 +502,7 @@ formChange("nil")
 end
 
 function eventProcessing(ev, key, p2, p3, p4, p5)
+arg={ev, key, p2, p3, p4, p5}
 for n=1, #mass["API"]["components"] do
 name=mass["API"]["components"][n][1]
 cType=mass["API"]["components"][n][2]
@@ -492,15 +511,30 @@ local a = nil
 if mass["API"]["components"][n][5]~=nil then
 if cType=="special" then
 if mass[appIndef]["selector"]["special"] == name and mass[appIndef]["selector"]["specialIndex"]==i then
-a = mass["API"]["components"][n][5](ev, key, mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"][cType][name][i], mass[appIndef]["selector"])
+a = mass["API"]["components"][n][5](arg, mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"][cType][name][i], mass[appIndef]["selector"])
 if a ~= nil then mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"][cType][name][i] = a end
 return
 end
 elseif mass[appIndef]["selector"]["special"] == nil and mass[appIndef]["selector"]["type"] == name and mass[appIndef]["selector"]["index"] == i then
-a = mass["API"]["components"][n][5](ev, key, mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"][cType][name][i])
+a = mass["API"]["components"][n][5](arg, mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"][cType][name][i])
 if a ~= nil then mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"][cType][name][i] = a end
 return
 end
+end
+end
+end
+end
+
+function allEventUpdate(ev, key, p2, p3, p4, p5)
+arg={ev, key, p2, p3, p4, p5}
+for n=1, #mass["API"]["components"] do
+name=mass["API"]["components"][n][1]
+cType=mass["API"]["components"][n][2]
+for i=1,#mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"][cType][name] do
+local a = nil
+if mass["API"]["components"][n][11]~=nil then
+a = mass["API"]["components"][n][11](arg, mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"][cType][name][i])
+if a ~= nil then mass[appIndef]["appForms"][mass[appIndef]["actualForm"]]["FormObjects"][cType][name][i] = a end
 end
 end
 end
@@ -510,8 +544,12 @@ function selectorUpdate(ev, key, p2, p3, p4, p5)
 term.setCursorBlink(false)
 if prSelMod then return end
 x,y=0,0
+if term.isColour() then
+allEventUpdate(ev, key, p2, p3, p4, p5)
+else
 eventProcessing(ev, key, p2, p3, p4, p5)
-if ev=="key" and (key==200 or key==203 or key==205 or key==208) then
+end
+if not term.isColour() and ev=="key" and (key==200 or key==203 or key==205 or key==208) then
 if mass[appIndef]["selector"]["type"] == nil then
 x = 0
 y = 0
@@ -629,8 +667,6 @@ local function back()
 setBeckGround(vBack)
 formChange(vAct)
 end
-
--- users[1][1]
 x,y=term.getSize()
 formRegister("System.start")
 form.add.multiPage("System.start",x-20,3,7,20,"System.start")
@@ -644,6 +680,5 @@ setBeckGround(vAct)
 formChange("System.start")
 
 end
-
 
 

@@ -24,7 +24,7 @@ end
 end
 
 function pageAdd(x,y,lenX,lenY,index)
-local drop={x,y,lenX,lenY,index,1,lenY,lenY}
+local drop={x,y,lenX,lenY,index,1,lenY,lenY,false}
 drop["strings"]={}
 return drop
 end
@@ -66,6 +66,23 @@ end
 end
 end
 
+function pageColourUpdate(events,arg)
+if events[1]=="mouse_click" and events[4]>=arg[2] and events[3]>=arg[1] and events[4]<=arg[2]+arg[4] and events[3]<=arg[1]+arg[3] then
+arg[9]=true
+else
+arg[9]=false
+end
+if events[1]=="mouse_scroll" and arg[9] then
+if events[2]==1 and arg[7]<arg[8] then
+arg[6]=arg[6]+1 
+arg[7]=arg[7]+1 
+elseif events[2]==-1 and arg[6]>1 then
+arg[6]=arg[6]-1 
+arg[7]=arg[7]-1 
+end
+end
+end
+
 function pageAddSym(arg,index,sym)
 for i=1,#arg do
 if arg[i][5]==index then
@@ -78,8 +95,8 @@ end
 end
 end
 
-function sReadEventUpdate(ev,key,arg)
-if ev=="key" and key == 14 then
+function sReadEventUpdate(events,arg)
+if events[1]=="key" and events[2] == 14 then
 local asRus = false
 local pwd = arg[3]
 for i=1,#ruFixData do
@@ -93,12 +110,43 @@ else
 asRus=false
 arg[3] = string.sub(pwd,1,#pwd-1)
 end
-elseif ev=="char" then
+elseif events[1]=="char" then
 if getFixLen(arg[3]) < arg[5] then
-arg[3] = arg[3]..key
+arg[3] = arg[3]..events[2]
 end
-elseif ev=="key" and key == 28 then
+elseif events[1]=="key" and events[2] == 28 then
 addFunctionToRun(arg[7])
+end
+end
+
+function sReadColourEventUpdate(events,arg)
+if events[1]=="mouse_click" and events[2]==1 and events[4]==arg[2] and events[3]>=arg[1]+1 and events[3]<=arg[1]+3+getFixLen(arg[3]) then
+arg[8]=true
+elseif events[1]=="mouse_click" then
+arg[8]=false
+end
+if arg[8] then
+if events[1]=="key" and events[2] == 14 then
+local asRus = false
+local pwd = arg[3]
+for i=1,#UTF8FixData do
+if string.sub(pwd,#pwd,#pwd)==UTF8FixData[i] then
+asRus = true
+end
+end
+if not asRus then
+arg[3] = string.sub(pwd,1,#pwd-2)
+else
+asRus=false
+arg[3] = string.sub(pwd,1,#pwd-1)
+end
+elseif events[1]=="char" then
+if getFixLen(arg[3]) < arg[5] then
+arg[3] = arg[3]..events[2]
+end
+elseif events[1]=="key" and events[2] == 28 then
+addFunctionToRun(arg[7])
+end
 end
 end
 
@@ -107,7 +155,14 @@ if type(func)~="function" then error("Error #011:Исполняемый код не обнаружен") 
 if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
 if text==nil then text="" elseif msg==nil then msg="" end
 if type(maxLen)~="number" then maxLen=999 end
-return {x,y,text,msg,maxLen,index,func}
+return {x,y,text,msg,maxLen,index,func,false}
+end
+
+function sReadSpecial(arg)
+if not term.isColour() or arg[8] then
+term.setCursorPos(arg[1]+3+getFixLen(arg[3]),arg[2])
+term.setCursorBlink(true)
+end
 end
 
 function numReadEventUpdate(ev,key,arg)
@@ -119,6 +174,25 @@ arg[3] = arg[3]..key
 end
 end
 end
+
+
+function numbReadColourEventUpdate(events,arg)
+if events[1]=="mouse_click" and events[2]==1 and events[4]==arg[2] and events[3]>=arg[1]+1 and events[3]<=arg[1]+3+getFixLen(arg[3]) then
+arg[7]=true
+elseif events[1]=="mouse_click" then
+arg[7]=false
+end
+if arg[7] then
+if events[1]=="key" and events[2] == 14 then
+arg[3] = string.sub(arg[3],1,#arg[3]-1)
+elseif events[1]=="char" and (events[2]=="0" or events[2]=="1" or events[2]=="2" or events[2]=="3" or events[2]=="4" or events[2]=="5" or events[2]=="6" or events[2]=="7" or events[2]=="8" or events[2]=="9") then
+if getFixLen(arg[3]) < arg[5] then
+arg[3] = arg[3]..events[2]
+end
+end
+end
+end
+
 
 function readSetText(arg,index,param)
 for i=1,#arg do
@@ -139,29 +213,29 @@ term.setCursorPos(arg[1],arg[2])
 term.write(arg[3])
 end
 
-function editEventUpdate(ev,key,arg)
-if ev=="char" then
-rebuild(arg[4]..arg[3]..key..arg[5])
+function editEventUpdate(events,arg)
+if events[1]=="char" then
+rebuild(arg[4]..arg[3]..events[2]..arg[5])
 selectorChenge(arg[1],arg[2],"right")
 end
-if ev=="key" and key==14 then
+if events[1]=="key" and events[2]==14 then
 rebuild(arg[4]..arg[5])
 selectorChenge(arg[1],arg[2],"left")
 end
-if ev=="key" and key==211 then
+if events[1]=="key" and events[2]==211 then
 rebuild(arg[4]..arg[7]..string.sub(arg[5],2))
 selectorChenge(arg[1]-1,arg[2],"right")
 end
-if ev=="key" and key==28 then
+if events[1]=="key" and events[2]==28 then
 rebuild(arg[4]..arg[3].."\n"..arg[5])
 selectorChenge(0,arg[2],"down")
 end
 local x,y=term.getSize()
-if ev=="key" and key==209 and arg[8]>fir+y-5 then
+if events[1]=="key" and events[2]==209 and arg[8]>fir+y-5 then
 fir=fir+1
 rebuild(lastText)
 selectorChenge(arg[1],arg[2],"up")
-elseif ev=="key" and key==201 and fir > 2 then
+elseif events[1]=="key" and events[2]==201 and fir > 2 then
 fir=fir-1
 rebuild(lastText)
 selectorChenge(arg[1],arg[2],"down")
@@ -173,29 +247,29 @@ term.setCursorPos(arg[1]+1,arg[2])
 term.setCursorBlink(true)
 end
 
-function specEditEventUpdate(ev,key,arg)
-if ev=="key" and key==211 then
+function specEditEventUpdate(events,arg)
+if events[1]=="key" and events[2]==211 then
 rebuild(arg[4]..string.sub(arg[5],2))
 selectorChenge(1,arg[2],"left")
 end
-if ev=="key" and key==14 then
+if events[1]=="key" and events[2]==14 then
 rebuild(string.sub(arg[4],1,#arg[4]-1)..arg[5])
 selectorChenge(arg[6]+1,arg[2]-1,"left")
 end
-if ev=="char" then
+if events[1]=="char" then
 rebuild(arg[4]..key..arg[5])
 selectorChenge(arg[1],arg[2],"right")
 end
-if ev=="key" and key==28 then
+if events[1]=="key" and events[2]==28 then
 rebuild(arg[4].."\n"..arg[5])
 selectorChenge(0,arg[2],"down")
 end
 local x,y=term.getSize()
-if ev=="key" and key==209 and arg[8]>fir+y-5 then
+if events[1]=="key" and events[2]==209 and arg[8]>fir+y-5 then
 fir=fir+1
 rebuild(lastText)
 selectorChenge(arg[1],arg[2],"up")
-elseif ev=="key" and key==201 and fir > 2 then
+elseif events[1]=="key" and events[2]==201 and fir > 2 then
 fir=fir-1
 rebuild(lastText)
 selectorChenge(arg[1],arg[2],"down")
@@ -216,14 +290,14 @@ end
 end
 end
 
-addComponent("numbRead","selected",readPrint,readAdd,numReadEventUpdate,readSpecial,{readGetText},{"getText"})
+addComponent("numbRead","selected",readPrint,readAdd,numReadEventUpdate,readSpecial,{readGetText},{"getText"},nil,nil,readColourEventUpdate)
 
 addComponent("editFrame","selected",editPrint,editAdd,editEventUpdate,editSpecial)
 
 addComponent("editSpecFrame","selected",editPrint,editAdd,specEditEventUpdate,editSpecial)
 
-addComponent("specRead","selected",readPrint,sReadAdd,sReadEventUpdate,readSpecial,{readGetText,readSetText},{"getText","setText"})
+addComponent("specRead","selected",readPrint,sReadAdd,sReadEventUpdate,sReadSpecial,{readGetText,readSetText},{"getText","setText"},nil,nil,sReadColourEventUpdate)
 
-addComponent("mineWebPage","selected",pagePrint,pageAdd,pageUpdate,nil,{pageAddString,pageClear,pageAddSym},{"addString","clear","addSymbol"})
+addComponent("mineWebPage","selected",pagePrint,pageAdd,pageUpdate,nil,{pageAddString,pageClear,pageAddSym},{"addString","clear","addSymbol"},nil,nil,pageColourUpdate)
 
-addComponent("memo","selected",pagePrint,pageAdd,pageUpdate,nil,{memoAddString,pageClear,pageAddSym},{"addString","clear","addSymbol"})
+addComponent("memo","selected",pagePrint,pageAdd,pageUpdate,nil,{memoAddString,pageClear,pageAddSym},{"addString","clear","addSymbol"},nil,nil,pageColourUpdate)
