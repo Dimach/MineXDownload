@@ -307,10 +307,13 @@ end
 if users[1][2]==nil then users[1][2]="nil" end
 for a=1,#strTable do
 if findfromback(strTable[a],users[1][2]) then
+if pass=="" then pass="nil" end
 if users[1][2]=="nil" then
+if findfromback(strTable[a],users[1][1]) then
 strTable[a]=string.sub(strTable[a],1,findfromback(strTable[a],users[1][2])-1).."\""..pass.."\""..string.sub(strTable[a],findfromback(strTable[a],users[1][2])+string.len(users[1][2]))
 else
 strTable[a]=string.sub(strTable[a],1,findfromback(strTable[a],users[1][2])-1)..pass..string.sub(strTable[a],findfromback(strTable[a],users[1][2])+string.len(users[1][2]))
+end
 end
 end
 end
