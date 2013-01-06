@@ -1,0 +1,35 @@
+
+local a="function(arg) dofile(\"MineX/Edit\") startEditing(arg) end"
+if register.get("formats.")==nil then
+register.new("formats.",a)
+end
+
+local a="function(arg) dofile(\"MineX/MineXshellExec\") MineX.shell.shellScriptExec(arg) end"
+if register.get("formats.def.mxss")==nil then
+register.new("formats.def.mxss",a)
+end
+
+local a="function(arg) dofile(\"MineX/Edit\") startEditing(arg) end"
+if register.get("formats.mxss")==nil then
+register.new("formats.mxss",a)
+end
+
+local a="function(arg) dofile(arg) end"
+if register.get("formats.def.xlua")==nil then
+register.new("formats.def.xlua",a)
+end
+
+local a="function(arg) dofile(\"MineX/Edit\") startEditing(arg) end"
+if register.get("formats.xlua")==nil then
+register.new("formats.xlua",a)
+end
+
+local a="function(arg) dofile(arg) end"
+if register.get("formats.def.lua")==nil then
+register.new("formats.def.lua",a)
+end
+
+local a="function(arg) dofile(\"MineX/Edit\") startEditing(arg) end"
+if register.get("formats.lua")==nil then
+register.new("formats.lua",a)
+end

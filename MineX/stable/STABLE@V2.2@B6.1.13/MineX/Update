@@ -1,0 +1,134 @@
+
+
+local config={}
+config.host=register.get("config.host")
+config.ver=register.get("config.ver")
+
+local function getTemp()
+fs.delete("UpdateTemp")
+fs.makeDir("UpdateTemp")
+
+end
+
+
+
+local function Update()
+
+
+local prc="0% getting files list"
+local function getUpdate()
+local function getFilelist()
+	local response = http.get(
+		config.host.."/"..build.."/fl"
+		)
+	fl = response.readAll()
+
+		response.close()
+		
+				file=io.open("UpdateTemp\\fl","w")
+		file:write(fl)
+		file:close()
+		dofile("UpdateTemp\\fl")
+		
+end
+local function getData()
+
+for i=1,#fileslist do
+if fileslist[i][1]=="dir" then
+
+fs.makeDir("UpdateTemp/"..fileslist[i][2])
+prc=(i*100/#fileslist).."% making dir "..fileslist[i][2]
+form.progresBar.set("Updating","Updating",0,i*100/#fileslist)
+else
+
+	local response = http.get(
+		config.host.."/"..build.."/"..fileslist[i][1]
+		)
+	fils = response.readAll()
+
+		response.close()
+		prc=(i*100/#fileslist).."% getting "..fileslist[i][2]
+		form.progresBar.set("Updating","Updating",0,i*100/#fileslist)
+		file=io.open("UpdateTemp\\"..fileslist[i][2],"w")
+		file:write(fils)
+		file:close()
+		end
+		
+		sleep(1)
+end
+
+MineX.infoMsg({"  New version succesfully downloaded!","Please close all programs and reboot MineX"},"Updating",programStop)
+
+end
+formRegister("Updating")
+form.add.progresBar("Updating",1,16,49,"Updating")
+
+form.add.text("Updating",1,15,function() return prc end)
+formChange("Updating")
+
+function Uapgader()
+	local response = http.get(
+		config.host.."/version.txt"
+		)
+	build = response.readAll()
+
+		response.close()
+local i=-10
+while true do
+if i<=100 then
+i=i+1
+else
+break
+end
+
+form.progresBar.set("Updating","Updating",i,i+10)
+
+sleep(0.1)
+end
+getTemp()
+getFilelist()
+getData()
+end
+addFunctionToRun(Uapgader)
+
+
+end
+
+
+local function cancel()
+programStop()
+
+end
+MineX.ynMsg({"  New update of MineX OS found!","  Download it?"},"nil",getUpdate,cancel)
+
+end
+
+local function UpdateFounder()
+local updateFound=false
+
+while true do
+	response = http.get(
+		config.host.."/version.txt"
+		)
+		if response then
+	if config.ver ~= response.readAll() then
+	updateFound=true
+	end
+
+		response.close()
+		end
+
+if updateFound then 
+
+
+break
+end
+
+sleep(600)
+end
+MineXLuaInit(Update,"Update")
+
+end
+
+MineX["up"]=Update
+addFunctionToRun(UpdateFounder)

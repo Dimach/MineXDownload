@@ -1,0 +1,452 @@
+
+
+function buttonPrint(arg,asSelected)
+x = arg[1]
+y = arg[2]
+if type(arg[3])=="function" then
+text = arg[3]()
+else
+text = arg[3]
+end
+if type(arg[5])=="function" then
+msg = arg[5]()
+else
+msg = arg[5]
+end
+if asSelected then
+term.setCursorPos(x,y)
+term.write(">["..text.."]<")
+term.setCursorPos(x,y-1)
+term.write(msg)
+else
+term.setCursorPos(x+1,y)
+term.write("["..text.."]")
+end
+end
+
+function buttonAdd(x,y,text,associative,msg,index,key)
+if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
+if text==nil then text="" elseif msg==nil then msg="" end
+if type(associative)~="function" then error("Error #011:Исполняемый код не обнаружен") end
+if type(key)~="number" then key=28 end
+return {x,y,text,associative,msg,key,index}
+end
+
+function buttonEventUpdate(events,arg)
+if events[1]=="key" and events[2]==arg[6] then addFunctionToRun(arg[4],nil,arg[7]) end
+end
+
+function buttonColourEventUpdate(events,arg)
+if events[1]=="mouse_click" and events[2]==1 and events[4]==arg[2] and events[3]>=arg[1]+1 and events[3]<=arg[1]+3+getFixLen(arg[3]) then
+addFunctionToRun(arg[4],nil,arg[7])
+end
+end
+
+function checkBoxGetState(arg,index)
+for i=1,#arg do
+if arg[i][4]==index then
+return nil,arg[i][5]
+end
+end
+end
+
+function checkBoxAdd(x,y,msg,index,state)
+if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
+if msg==nil then msg="" end
+if type(state)~="boolean" then state=false end
+return {x,y,msg,index,state}
+end
+
+function checkBoxEventUpdate(events,arg)
+if events[1]=="key" and events[2]==28 then
+if arg[5] then
+arg[5]=false
+else
+arg[5]=true
+end
+return arg
+end
+end
+
+function checkBoxColourEventUpdate(events,arg)
+if events[1]=="mouse_click" and events[2]==1 and events[4]==arg[2] and events[3]>=arg[1]+1 and events[3]<=arg[1]+4 then
+if arg[5] then
+arg[5]=false
+else
+arg[5]=true
+end
+return arg
+end
+end
+
+function checkBoxPrint(arg,asSelected)
+x = arg[1]
+y = arg[2]
+msg = arg[3]
+state = arg[5]
+if asSelected then
+term.setCursorPos(x,y)
+if state then
+term.write(">[V]<")
+else
+term.write(">[ ]<")
+end
+term.setCursorPos(x,y-1)
+term.write(msg)
+else
+term.setCursorPos(x+1,y)
+if state then
+term.write("[V]")
+else
+term.write("[ ]")
+end
+end
+end
+
+function textPrint(arg,asSelected)
+x = arg[1]
+y = arg[2]
+if type(arg[3])=="function" then
+text = arg[3]()
+else
+text = arg[3]
+end
+term.setCursorPos(x,y)
+term.write(text)
+end
+
+function textAdd(x,y,text,index)
+if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
+if text==nil then text="" end
+return {x,y,text,index}
+end
+
+function progresPrint(arg,asSelected)
+x = arg[1]
+y = arg[2]
+len = arg[3]
+fir = arg[4]
+sec = arg[5]
+local procentAsSymbol, progress, sProgress
+local progres = ""
+procentAsSymbol = math.modf (100/(len-2))
+sProgress = math.modf (fir/procentAsSymbol)
+progress = math.modf (sec/procentAsSymbol)
+for i=1,len-2 do
+if i <= progress and i >= sProgress then progres = progres.."|" else progres = progres.." " end
+end
+term.setCursorPos(x,y)
+term.write("\{"..progres.."\}")
+end
+
+function progresBarAdd(x,y,len,index)
+return {x,y,len,0,0,index}
+end
+
+function progresBarSet(arg,index,fir,sec)
+for i=1,#arg do
+if arg[i][6]==index then
+arg[i][4]=fir
+arg[i][5]=sec
+return arg
+end
+end
+end
+
+function readPrint(arg,asSelected)
+x = arg[1]
+y = arg[2]
+text = arg[3]
+msg = arg[4]
+if asSelected then
+term.setCursorPos(x,y)
+term.write(">>>"..text.." <")
+term.setCursorPos(x,y-1)
+term.write(msg)
+else
+term.setCursorPos(x+1,y)
+term.write(">>"..text)
+end
+end
+
+function readEventUpdate(events,arg)
+if events[1]=="key" and events[2] == 14 then
+local asRus = false
+local pwd = arg[3]
+for i=1,#UTF8FixData do
+if string.sub(pwd,#pwd,#pwd)==UTF8FixData[i] then
+asRus = true
+end
+end
+if not asRus then
+arg[3] = string.sub(pwd,1,#pwd-2)
+else
+asRus=false
+arg[3] = string.sub(pwd,1,#pwd-1)
+end
+elseif events[1]=="char" then
+if getFixLen(arg[3]) < arg[5] then
+arg[3] = arg[3]..events[2]
+end
+end
+end
+
+function readColourEventUpdate(events,arg)
+if events[1]=="mouse_click" and events[2]==1 and events[4]==arg[2] and events[3]>=arg[1]+1 and events[3]<=arg[1]+3+getFixLen(arg[3]) then
+arg[7]=true
+elseif events[1]=="mouse_click" then
+arg[7]=false
+end
+if arg[7] then
+if events[1]=="key" and events[2] == 14 then
+local asRus = false
+local pwd = arg[3]
+for i=1,#UTF8FixData do
+if string.sub(pwd,#pwd,#pwd)==UTF8FixData[i] then
+asRus = true
+end
+end
+if not asRus then
+arg[3] = string.sub(pwd,1,#pwd-2)
+else
+asRus=false
+arg[3] = string.sub(pwd,1,#pwd-1)
+end
+elseif events[1]=="char" then
+if getFixLen(arg[3]) < arg[5] then
+arg[3] = arg[3]..events[2]
+end
+end
+end
+end
+
+function readAdd(x,y,text,msg,maxLen,index)
+if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
+if text==nil then text="" elseif msg==nil then msg="" end
+if type(maxLen)~="number" then maxLen=999 end
+return {x,y,text,msg,maxLen,index,false}
+end
+
+function readGetText(arg,index)
+for i=1,#arg do
+if arg[i][6]==index then
+return nil,arg[i][3]
+end
+end
+end
+
+function readSpecial(arg)
+if not term.isColour() or arg[7] then
+term.setCursorPos(arg[1]+3+getFixLen(arg[3]),arg[2])
+term.setCursorBlink(true)
+end
+end
+
+function multiPageZoneAdd(x,y,lenV,lenG,index)
+if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
+if type(lenV)~="number" or type(lenG)~="number" then error("Error #549:Размер должен быть числом") end
+arg={}
+arg["info"]={x,y,lenV,lenG,index,1,lenV,1,false}
+arg["objects"]={}
+arg["objects"]["noselected"]={}
+arg["objects"]["noselected"]["text"]={}
+arg["objects"]["selected"]={}
+arg["objects"]["selected"]["button"]={}
+return arg
+end
+
+function multiPageZoneAddText(arg,index,x,y,text,textIndex)
+if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
+if text==nil then text="" end
+for i=1, #arg do
+if arg[i]["info"][5]==index  then
+arg[i]["objects"]["noselected"]["text"][#arg[i]["objects"]["noselected"]["text"]+1]={x,y,text,textIndex}
+return arg
+end
+end
+end
+
+function multiPageZoneAddButton(arg,index,x,y,text,associative,msg,butIndex,key)
+if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
+if text==nil then text="" elseif msg==nil then msg="" end
+if type(associative)~="function" then error("Error #011:Исполняемый код не обнаружен") end
+if type(key)~="number" then key=false end
+for i=1, #arg do
+if arg[i]["info"][5]==index  then
+arg[i]["objects"]["selected"]["button"][#arg[i]["objects"]["selected"]["button"]+1]={x,y,text,associative,msg,butIndex,key}
+local function comp(a,b) if a[2]<b[2] then return true else return false end end
+table.sort(arg[i]["objects"]["selected"]["button"],comp)
+arg[i]["info"][8]=arg[i]["objects"]["selected"]["button"][#arg[i]["objects"]["selected"]["button"]][2]+1
+return arg
+end
+end
+end
+
+function multiPagePrint(arg,sel,sSel)
+if sel==nil then sel={} end
+obX = arg["info"][1]
+obY = arg["info"][2]
+obML = arg["info"][3]
+obMLX = arg["info"][4]
+obPF = arg["info"][6]
+obPS = arg["info"][7]
+for n=1, #arg["objects"]["noselected"]["text"] do
+x = arg["objects"]["noselected"]["text"][n][1]
+y = arg["objects"]["noselected"]["text"][n][2]
+text = arg["objects"]["noselected"]["text"][n][3]
+if y > obPF and y < obPS then
+term.setCursorPos(x+obX,y-obPF+obY)
+term.write(text)
+end
+end
+for n=1, #arg["objects"]["selected"]["button"] do
+x = arg["objects"]["selected"]["button"][n][1]
+y = arg["objects"]["selected"]["button"][n][2]
+text = arg["objects"]["selected"]["button"][n][3]
+msg = arg["objects"]["selected"]["button"][n][5]
+if y > obPF and y < obPS then
+term.setCursorPos(x+obX,y-obPF+obY)
+if sSel and sel["type"] == "button" and sel["index"] == n then
+term.write(">["..text.."]<")
+term.setCursorPos(x+obX,y-obPF+obY-1)
+term.write(msg)
+else
+term.write(" ["..text.."] ")
+end
+end
+end
+term.setCursorPos(obX,obY)
+term.write("+")
+for i=1,obMLX-2 do term.write("-") end
+term.write("+")
+term.setCursorPos(obX,obY+obML-1)
+term.write("+")
+for i=1,obMLX-2 do term.write("-") end
+term.write("+")
+for i=obY+1,obML+obY-2 do 
+term.setCursorPos(obX,i)
+term.write("|")
+term.setCursorPos(obX+obMLX-1,i)
+term.write("|")
+end
+end
+
+function multiPageEventUpdate(events,arg,sel)
+if events[1]=="key" then
+if arg["objects"]["selected"]["button"][sel["index"]][7] == events[2] then
+addFunctionToRun(arg["objects"]["selected"]["button"][sel["index"]][4])
+return
+end
+if not arg["objects"]["selected"]["button"][sel["index"]][7] then
+addFunctionToRun(function() arg["objects"]["selected"]["button"][sel["index"]][4](events[2]) end)
+return
+end
+y = arg["objects"]["selected"][sel["type"]][sel["index"]][2]
+if events[2]==209 and arg["info"][7] < arg["info"][8] then
+arg["info"][6]=arg["info"][6]+1
+arg["info"][7]=arg["info"][7]+1
+if y<=arg["info"][6] then
+obX = arg["info"][1]
+obY = arg["info"][2]
+obPF = arg["info"][6]
+x = arg["objects"]["selected"]["button"][sel["index"]][1]
+y = arg["objects"]["selected"]["button"][sel["index"]][2]
+x = x+obX
+y = y-obPF+obY
+selectorChenge(x,y,"down")
+end
+elseif events[2]==201 and arg["info"][6] > 1 then
+arg["info"][6]=arg["info"][6]-1
+arg["info"][7]=arg["info"][7]-1
+if y>=arg["info"][7] then
+obX = arg["info"][1]
+obY = arg["info"][2]
+obPF = arg["info"][6]
+x = arg["objects"]["selected"]["button"][sel["index"]][1]
+y = arg["objects"]["selected"]["button"][sel["index"]][2]
+x = x+obX
+y = y-obPF+obY
+selectorChenge(x,y,"up")
+end
+end
+return arg
+end
+end
+
+function multiPageColourEventUpdate(events,arg)
+obX = arg["info"][1]
+obY = arg["info"][2]
+obML = arg["info"][3]
+obMLX = arg["info"][4]
+obPF = arg["info"][6]
+obPS = arg["info"][7]
+if events[1]=="mouse_click" then
+if events[4]>=obY and events[3]>=obX and events[4]<=obY+obML and events[3]<=x+obMLX then
+arg["info"][9]=true
+else
+arg["info"][9]=false
+end
+for n=1, #arg["objects"]["selected"]["button"] do
+x = arg["objects"]["selected"]["button"][n][1]
+y = arg["objects"]["selected"]["button"][n][2]
+text = arg["objects"]["selected"]["button"][n][3]
+if y > obPF and y < obPS then
+if events[4]==y-obPF+obY and events[3]>=x+obX+1 and events[3]<=x+obX+3+getFixLen(text) then
+if events[2]==1 and arg["objects"]["selected"]["button"][n][7] then
+addFunctionToRun(arg["objects"]["selected"]["button"][n][4])
+elseif not arg["objects"]["selected"]["button"][n][7] then
+addFunctionToRun(function() arg["objects"]["selected"]["button"][n][4]("Mouse",events[2]) end)
+end
+return
+end
+end
+end
+elseif events[1]=="mouse_scroll" and arg["info"][9] then
+if events[2]==1 and arg["info"][7] < arg["info"][8] then
+arg["info"][6]=arg["info"][6]+1
+arg["info"][7]=arg["info"][7]+1
+elseif events[2]==-1 and arg["info"][6] > 1 then
+arg["info"][6]=arg["info"][6]-1
+arg["info"][7]=arg["info"][7]-1
+end
+end
+end
+
+function multiPageSecondSelector(arg,sel)
+if arg == nil  then return 0,0 end
+x = arg["objects"]["selected"][sel["type"]][sel["index"]][1]
+y = arg["objects"]["selected"][sel["type"]][sel["index"]][2]
+x = x+arg["info"][1]
+y = y-arg["info"][6]+arg["info"][2]
+return x,y
+end
+
+function multiPageFirstSelector(func,arg,x,y)
+drop={}
+obX = arg["info"][1]
+obY = arg["info"][2]
+obPF = arg["info"][6]
+obPS = arg["info"][7]
+for n=1, #arg["objects"]["selected"]["button"] do
+local xS = arg["objects"]["selected"]["button"][n][1]
+local yS = arg["objects"]["selected"]["button"][n][2]
+if func(x,y,yS-obPF+obY,xS+obX) then
+if yS > obPF and yS < obPS then
+drop[#drop+1] = {xS+obX,yS-obPF+obY,n,"button"}
+end
+end
+end
+return drop
+end
+
+addComponent("multiPage","special",multiPagePrint,multiPageZoneAdd,multiPageEventUpdate,nil,{multiPageZoneAddButton,multiPageZoneAddText},{"addButton","addText"},multiPageFirstSelector,multiPageSecondSelector,multiPageColourEventUpdate)
+
+addComponent("text","noselected",textPrint,textAdd)
+
+addComponent("progresBar","noselected",progresPrint,progresBarAdd,nil,nil,{progresBarSet},{"set"})
+
+addComponent("checkBox","selected",checkBoxPrint,checkBoxAdd,checkBoxEventUpdate,nil,{checkBoxGetState},{"getState"},nil,nil,checkBoxColourEventUpdate)
+
+addComponent("button","selected",buttonPrint,buttonAdd,buttonEventUpdate,nil,nil,nil,nil,nil,buttonColourEventUpdate)
+
+addComponent("read","selected",readPrint,readAdd,readEventUpdate,readSpecial,{readGetText},{"getText"},nil,nil,readColourEventUpdate)

@@ -1,0 +1,257 @@
+function writeCenter(msg,y,sLen)
+		if sLang==1 or sLang==0 then len = sLen else len = #msg end
+		term.setCursorPos((52-len)/2,y)
+		term.write(msg)
+end
+
+function findfromback(arg,w)
+for n = 1,#arg do
+local a=#arg-n
+if string.sub (arg, a,a+#w-1)==w then
+return a;
+end
+end
+end
+
+function writeAsNSymbol(text,n,y)
+
+	if n >= 0 and n <= 50 then
+	
+		for i=1,#text do
+			term.setCursorPos(n,y-1+i)
+			write(text[i])
+		end
+		
+	end
+	
+end
+
+function progresBar(pos,x,y,len)
+	local i, procentAsSymbol, progress
+	local progres = ""
+	procentAsSymbol = math.modf (100/(len-2))
+	progress = math.modf (pos/procentAsSymbol)
+	
+	for i=1,len-2 do
+		if i <= progress then progres = progres.."|" else progres = progres.." " end
+	end
+	
+	term.setCursorPos(x,y)
+	write("["..progres.."]")
+end
+
+function buttonAllPos(bts,x,y,btsn,sel)
+	local i,event,key,xx,yy
+	local len=#bts*2
+	xx,yy=term.getSize()
+	
+	if sLang == 1 then
+	len=len+1
+	for i=1,#bts do len=len+(#bts[i])/2 end
+	else
+	for i=1,#bts do len=len+#bts[i] end
+	end
+	
+	if type(x)=="string" then
+		if x=="left" then x=1
+		elseif x=="center" then x=(xx-len+2)/2
+		elseif x=="right" then x=xx-len+1 
+		else x=1 end 
+	end
+	
+	if type(y)=="string" then
+		if y=="top" then y=1
+		elseif y=="center" then y=yy/2
+		elseif y=="bottom" then y=yy 
+		else y=1 end 
+	end
+	
+	if sel==nil then sel=1 end
+	
+	while true do
+		term.setCursorPos(x,y)
+		term.clearLine()
+		
+		for i=1,#bts do
+			if i==sel then term.write("["..bts[i].."]") else term.write(" "..bts[i].." ") end
+		end
+		
+		if sel=="break" then break end
+		
+		event,key=os.pullEvent("key")
+		
+		if key==203 and sel>1 then sel=sel-1
+		elseif key==205 and sel<#bts then sel=sel+1
+		elseif key==28 then break end
+		
+	end
+	
+	if btsn==nil then return bts[sel] else return btsn[sel] end
+	
+end
+
+function TextGet(pos)
+lang={}
+lang[1]={
+{"Данная программа установит на ваш","компьютер ос MineX","MineX - полуграфическая ОС для ComputerCraft"},
+"Вас приветствует мастер установки ос MineX",
+{"<Назад","Выйти","Дальше>"},
+{"Внимание! Все существовавшие ранее","файлы будут недоступны"},
+{"<Назад","Выйти","Установить!"},
+"Вы уверены что хотите прервать процесс установки?",
+{"Да","Нет"},
+"Подождите пока мастер установки MineX OS выполнит",
+"необходимые операции..."
+}
+
+lang[2]={
+{"Dannaya programma ustanovit na vash","kompyuter os MineX","MineX - polugraficheskaya OS dlya","ComputerCraft"},
+"Vas privetstvuet master ustanovki os MineX",
+{"<Nazad","Vyiti","Dalshe>"},
+{"Vnimanie! Vse sushchestvovavshie ranyee","faily budut nedostupny"},
+{"<Nazad","Vyiti","Ustanovit!"},
+"Vy uvereny chto khotite vyiti iz protsessa ustanovki?",
+{"Da","Net"},
+"Podozhdite poka master ustanovki OS MineX vypolnit",
+"nyeobkhodimye operatsii..."
+}
+
+lang[3]={
+{"This program install on your","computer OS MineX","MineX - halfgraphical OS for ComputerCraft"},
+"Welcome to MineX OS Setup",
+{"<Back","Exit","Next>"},
+{"Attention! All pre-existing files","will are not available"},
+{"<Back","Exit","Install!"},
+"Do you really want to cancel the installation?",
+{"Yes","No"},
+"Wait until the installation wizard MineX OS",
+"will perform the necessary operations ..."
+}
+
+return lang[sLang][pos]
+end
+
+function FormInstallDisabet (func)
+writeCenter("--------------------------------------------------",7,50)
+writeCenter(TextGet(6),8,49)
+writeCenter("--------------------------------------------------",10,50)
+local select = buttonAllPos(TextGet(7),"center",9,{1,2})
+if select == 2 then
+func()
+else
+term.clear()
+term.setCursorPos(1,1)
+end
+end
+
+function FormHello()
+term.clear()
+writeCenter("Выберите язык/vuberite yazuk/select a language",8,46)
+sLang = buttonAllPos({"Русский","Russkiy","English"},13,9,{1,2,3})
+FormInfo()
+end
+
+function FormInfo()
+term.clear()
+writeCenter(TextGet(2),1,42)
+writeAsNSymbol(TextGet(1),5,3)
+local select = buttonAllPos(TextGet(3),"right","bottom",{1,2,3})
+if select==1 then
+FormHello()
+elseif select == 2 then
+FormInstallDisabet(FormInfo)
+else
+FormWarning()
+end
+end
+
+function FormWarning()
+term.clear()
+writeCenter(TextGet(2),1,42)
+writeAsNSymbol(TextGet(4),5,3)
+local select = buttonAllPos(TextGet(5),"right","bottom",{1,2,3})
+if select==1 then
+FormInfo()
+elseif select==2 then
+FormInstallDisabet(FormWarning)
+else
+FormProgres()
+end
+end
+
+function FormProgres()
+term.clear()
+writeCenter(TextGet(2),1,42)
+writeCenter("--------------------------------------------------",2,50)
+writeCenter(TextGet(8),3,50)
+writeCenter(TextGet(9),4,23)
+writeCenter("--------------------------------------------------",5,50)
+
+	local response = http.get(
+		"https://raw.github.com/Dimach/MineXDownload/master/MineX/version.txt"
+		)
+	build = response.readAll()
+
+		response.close()
+
+		
+		local response = http.get(
+		"https://raw.github.com/Dimach/MineXDownload/master/MineX/stable/"..build.."/fl"
+		)
+	fl = response.readAll()
+
+		response.close()
+		
+
+ f=io.open("fl","w")
+ f:write(fl)
+ f:close()
+ dofile("fl")
+ 
+
+
+
+
+
+
+
+
+for i=1,#fileslist do
+
+if fileslist[i][1]=="dir" then
+
+fs.makeDir(fileslist[i][2])
+
+progresBar(i*100/#fileslist,1,9,49)
+else
+
+	local response = http.get(
+		"https://raw.github.com/Dimach/MineXDownload/master/MineX/stable/"..build.."/"..fileslist[i][1]
+		)
+			fils = response.readAll()
+
+		response.close()
+		
+		progresBar(i*100/#fileslist,1,9,49)
+		file=io.open(fileslist[i][2],"w")
+		file:write(fils)
+		file:close()
+		end
+		
+		sleep(1)
+
+
+end
+
+end
+
+
+sLang = 0
+FormHello()
+term.clear()
+term.setCursorPos(1,1)
+textutils.slowPrint("MineX installation compleated...")
+textutils.slowPrint("CraftBIOS will be rebooted...")
+
+sleep(1)
+os.reboot()

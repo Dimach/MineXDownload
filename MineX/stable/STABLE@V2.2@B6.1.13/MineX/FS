@@ -1,0 +1,302 @@
+MineX.saveFile=false
+MineX.CopyPastePath=""
+openFunc=nil
+local path=""
+local lastPath=""
+local function list(disk,sss)
+
+
+if not disk then disk="C" end
+if sss~=nil then path=sss end
+
+
+if fs.exists(path.."\\.folder") then
+
+f=io.open(path.."\\.folder")
+local flag=f:read()
+if flag=="userNameOnly" then
+if users[1][1]~=string.sub(path,findfromback(path,"\\")+1) and ( users[1][3]==nil or users[1][3]~=true) then
+list(disk,lastPath)
+end
+end
+f:close()
+end
+lastPath=path
+
+formRegister("FS")
+
+local x,y=term.getSize()
+n=string.find(path,"\\")
+if n==nil then n=#path end
+form.add.text("FS",1,3,"| "..disk..":\\"..string.sub(path,n+1))
+form.add.text("FS",Form.maxX-1,3,"|")
+form.add.multiPage("FS",1,4,Form.maxY-3,Form.maxX-1,"FS")
+
+local tAll = fs.list( path )
+local tFiles = {}
+local tDirs = {}
+
+for n, sItem in pairs( tAll ) do
+	if string.sub( sItem, 1, 1 ) ~= "." then
+		local sPath = fs.combine( path, sItem )
+		if fs.isDir( sPath ) then
+			table.insert( tDirs, sItem )
+		else
+			table.insert( tFiles, sItem )
+		end
+		
+		else
+		
+		--table.remove(tAll,n)
+	end
+	
+	
+end
+table.sort( tDirs )
+table.sort( tFiles )
+
+local function an(ar) 
+setBeckGround("nil")
+path=ar
+list(disk) 
+end
+
+local function amm(ad,key,key2)
+local function open(arg)
+if isDialog then
+setBeckGround("nil")
+openFunc(string.gsub(arg,"\\","/"))
+else
+if findfromback(arg,".")~=false then
+register.get("formats.def."..string.sub(arg,findfromback(arg,".")+1))(arg)
+else
+register.get("formats.def.")(arg)
+end
+end
+end
+if key~="Mouse" then
+if key~=28 and key~=29 then return end
+if key==28 then if fs.isDir(ad) then an(ad) return else open(ad) return end end
+else
+if key2~=1 and key2~=2 then return end
+if key2==1 then if fs.isDir(ad) then an(ad) return else open(ad) return end end
+end
+local function close()
+setBeckGround("nil")
+formChange("FS")
+end
+
+local function cut(ad)
+MineX.CopyPastePath=ad
+MineX.saveFile=false
+setBeckGround("nil")
+formChange("FS")
+end
+
+local function copy(ad)
+MineX.CopyPastePath=ad
+MineX.saveFile=true
+setBeckGround("nil")
+formChange("FS")
+end
+
+local function delete()
+fs.delete(ad)
+setBeckGround("nil")
+list(disk)
+end
+local function run()
+dofile(ad)
+end
+
+
+local function openW(arg)
+if findfromback(arg,".")~=false then
+register.get("formats."..string.sub(arg,findfromback(arg,".")+1))(arg)
+else
+register.get("formats.")(arg)
+end
+
+
+end
+
+local function rn(ad)
+if ad==nil then ad = "" end
+local function cancel()
+setBeckGround("nil")
+list(disk)
+
+end
+
+local function asna()
+
+fs.move(ad,string.sub(ad,1,findfromback(ad,"\\"))..form.read.getText("FS.rn","FS.rn"))
+setBeckGround("nil")
+list(disk)
+end
+
+setBeckGround("FS")
+
+
+
+formRegister("FS.rn")
+form.add.text("FS.rn",1,7,maoo("-"))
+form.add.text("FS.rn",1,8,maoo(" "))
+form.add.text("FS.rn",1,9,maoo(" "))
+form.add.text("FS.rn",1,10,maoo("-"))
+form.add.read("FS.rn",2,8,string.sub(ad,findfromback(ad,"\\")+1),"NAME",20,"FS.rn")
+form.add.button("FS.rn",2,9,"OK",asna,"","",28)
+form.add.button("FS.rn",9,9,"C",cancel,"","",28)
+formChange("FS.rn")
+
+
+end
+
+formRegister("FS.folder")
+if isDialog then
+form.add.multiPage("FS.folder",Form.maxX-14,4,3,14,"FS.folder")
+else
+
+form.add.multiPage("FS.folder",Form.maxX-14,4,8,14,"FS.folder")
+
+end
+if fs.isDir(ad) then
+
+form.multiPage.addButton("FS.folder","FS.folder",1,3,"GO",functionBuilder(an,{ad}),string.sub(ad,findfromback(ad,"\\")+1),"",28)
+if not isDialog then
+form.multiPage.addButton("FS.folder","FS.folder",1,5,"COPY",functionBuilder(copy,{ad}),"","",28)
+form.multiPage.addButton("FS.folder","FS.folder",1,4,"DELETE",delete,"","",28)
+form.multiPage.addButton("FS.folder","FS.folder",1,6,"CUT",functionBuilder(cut,{ad}),"","",28)
+form.multiPage.addButton("FS.folder","FS.folder",1,7,"RENAME",functionBuilder(rn,{ad}),"","",28)
+end
+form.multiPage.addButton("FS.folder","FS.folder",7,3,"C",close,"","",28)
+else
+form.multiPage.addButton("FS.folder","FS.folder",1,2,"OPEN",functionBuilder(open,{ad}),"","",28)
+if not isDialog then
+form.multiPage.addButton("FS.folder","FS.folder",1,3,"OPEN WITH",functionBuilder(openW,{ad}),"","",28)
+form.multiPage.addButton("FS.folder","FS.folder",1,5,"COPY",functionBuilder(copy,{ad}),"","",28)
+form.multiPage.addButton("FS.folder","FS.folder",1,4,"DELETE",delete,"","",28)
+form.multiPage.addButton("FS.folder","FS.folder",1,6,"CUT",functionBuilder(cut,{ad}),"","",28)
+form.multiPage.addButton("FS.folder","FS.folder",1,7,"RENAME",functionBuilder(rn,{ad}),"","",28)
+end
+form.multiPage.addButton("FS.folder","FS.folder",8,2,"C",close,"","",28)
+end
+
+setBeckGround("FS")
+formChange("FS.folder")
+
+end
+
+local function asn()
+
+if not findfromback(path,"\\") then
+
+formChange("System.mycomp")
+
+else
+
+an(string.sub(path,1,findfromback(path,"\\")-1))
+
+end
+
+
+
+end
+
+local function new()
+local function file()
+
+file = io.open(path.."\\newfile","w")
+
+file:write("")
+file:close()
+list(disk)
+end
+
+local function folder()
+
+fs.makeDir(path.."\\newfolder")
+list(disk)
+end
+local function paste()
+local sSource = shell.resolve(MineX.CopyPastePath)
+local sDest = shell.resolve(path..string.sub(MineX.CopyPastePath,findfromback(MineX.CopyPastePath,"\\")))
+if fs.exists( sDest ) and fs.isDir( sDest ) then
+	sDest = fs.combine( sDest, fs.getName(sSource) )
+end
+if MineX.saveFile then
+fs.copy( sSource, sDest )
+else
+fs.move( sSource, sDest )
+MineX.saveFile=true
+MineX.CopyPastePath=path..string.sub(MineX.CopyPastePath,findfromback(MineX.CopyPastePath,"\\"))
+end
+list(disk)
+end
+local function annn() 
+
+formChange("FS")
+
+end
+formRegister("NEW")
+form.add.button("NEW",1,3,"FILE",file,"","",28)
+form.add.button("NEW",1,4,"FOLDER",folder,"","",28)
+
+form.add.button("NEW",1,5,"PASTE",paste,"","",28)
+form.add.button("NEW",1,6,"BACK",annn,"","",28)
+formChange("NEW")
+end
+
+for i=1,#tDirs do
+form.multiPage.addButton("FS","FS",2,2+i-1,tDirs[i],function(arg,arg2) amm(path.."\\"..tDirs[i],arg,arg2) end,"","")
+end
+
+for n=1,#tFiles do
+
+
+form.multiPage.addButton("FS","FS",2,#tDirs+2+n-1,tFiles[n],function(arg,arg2) amm(path.."\\"..tFiles[n],arg,arg2) end,"","")
+form.multiPage.addText("FS","FS",getFixLen(tFiles[n])+6,#tDirs+2+n-1,"FILE")
+end
+form.multiPage.addButton("FS","FS",2,#tDirs+#tFiles+2,"NEW",new,"","",28)
+form.multiPage.addButton("FS","FS",2,#tDirs+#tFiles+3,"BACK",asn,"","",28)
+formChange("FS")
+
+
+
+end
+
+
+
+function MineX.fs()
+local path=""
+local active=true
+local function rebuild()
+while active do
+formRegister("System.mycomp")
+
+
+form.add.button("System.mycomp",1,3,"HDD [C]",function() active=false list("C","C") end,"","",28)
+for i=1,#MineX.CDROMS.sides do
+if disk.hasData(MineX.CDROMS.sides[i]) then
+form.add.button("System.mycomp",1,3+i,"Disk ["..MineX.CDROMS.symbols[i].."]",function() active=false list(MineX.CDROMS.symbols[i],disk.getMountPath(MineX.CDROMS.sides[i])) end,"","",28)
+else
+form.add.button("System.mycomp",1,3+i,"No disk ["..MineX.CDROMS.symbols[i].."]",function() end,"","",28)
+end
+end
+
+formChange("System.mycomp")
+repeat
+a,b=os.pullEventRaw()
+until a=="disk" or a=="disk_eject" or b=="disk" or b=="disk_eject"
+end
+end
+addFunctionToRun(rebuild)
+end
+
+function MineX.openDialog(path1,func)
+openFunc=func
+path=path1 or ""
+isDialog=true
+list()
+
+end

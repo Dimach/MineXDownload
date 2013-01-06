@@ -1,0 +1,5 @@
+term.clear()
+term.setCursorPos(1,1)
+print("Фатальная ошибка ос")
+print("Fatal error")
+print(param)

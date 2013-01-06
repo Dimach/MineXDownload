@@ -1,0 +1,638 @@
+
+
+MineX.version="MineX Global Update First Relased Version Lite"
+MineX.httpversion="UNSTABLE@V2.2@B6.1.13"
+MineX.log={}
+
+
+
+Form={}
+Form.maxX,Form.maxY=term.getSize()
+
+
+function farg(f,...)
+local a={...} 
+return function() f(unpack(a)) end 
+end
+
+function functionBuilder(func,arg)
+
+return farg(func,unpack(arg))
+
+end
+
+if register.get("config.host")==nil then
+register.new("config.host","https://raw.github.com/Dimach/MineXDownload/master/MineX/stable")
+
+end
+if register.get("config.ver")~=MineX.httpversion then
+register.new("config.ver",MineX.httpversion)
+
+end
+if register.get("MineX.lp")==nil then
+register.new("MineX.lp","eu")
+end
+
+local a="function(arg) local func = function(args) dofile(args) end local tFenv=getfenv(func) tFenv.print=function() dofile(\"MineX/MineXshell\") MineXLuaInit(MineX.shell.shellExec,\"MineXshell\") MineX.shell.commandTable[\"openGlobal\"](arg) end tFenv.write=tFenv.print tFenv.read=tFenv.print setfenv(func,tFenv) func(arg) print(\"Program complete\") end"
+if register.get("formats.def.")==nil then
+register.new("formats.def.",a)
+end
+
+dofile("RegisterDef")
+
+
+function attachLogger()
+
+end
+
+
+function httpClientDecode(link)
+	local response = http.post(
+	
+	"http://industrialserver.ru/MineX/Client.php",
+	
+	"link="..string.gsub(link,"&","^")
+	
+		)
+	res = response.readAll()
+
+		response.close()
+		
+	return res
+
+
+end
+
+
+function getTranslate(text)
+
+return httpClientDecode("http://translate.yandex.net/api/v1/tr/translate?lang="..register.get("MineX.lp").."^text="..text)
+
+end
+
+function MineX.infoMsg(text,parent,func)
+
+local function back() 
+setBeckGround("nil")
+func()
+
+end
+
+setBeckGround(parent)
+formRegister("Info.msg")
+
+form.add.text("Info.msg",1,8,maoo("-"))
+if type(text)=="table" then
+for i=1,#text do
+form.add.text("Info.msg",2,8+i,text[i])
+end
+ form.add.button("Info.msg",math.floor(Form.maxX/2),9+#text+1,"OK",back,"","",28)
+
+ 
+form.add.text("Info.msg",1,9+#text+2,maoo("-")) 
+ 
+
+end
+formChange("Info.msg")
+
+end
+
+function MineX.readMsg(text,parent,func,cancelF,readMsg,len)
+
+local function back() 
+setBeckGround("nil")
+func(form.read.getText("Info.msg","edit"))
+
+end
+
+local function cancel()
+setBeckGround("nil")
+cancelF()
+end
+
+setBeckGround(parent)
+formRegister("Info.msg")
+
+form.add.text("Info.msg",1,8,maoo("-"))
+if type(text)=="table" then
+for i=1,#text do
+form.add.text("Info.msg",2,8+i,text[i])
+end
+form.add.read("Info.msg",1,9+#text+1,readMsg or "","",len or 20,"edit")
+
+ form.add.button("Info.msg",10,9+#text+2,"OK",back,"","",28)
+form.add.button("Info.msg",25,9+#text+2,"CANCEL",cancel,"","",28)
+ 
+form.add.text("Info.msg",1,9+#text+3,maoo("-")) 
+ 
+
+end
+formChange("Info.msg")
+
+end
+
+
+
+function MineX.ynMsg(text,parent,Yfunc,Nfunc)
+
+local function Yes() 
+setBeckGround("nil")
+Yfunc()
+
+end
+
+local function No() 
+setBeckGround("nil")
+Nfunc()
+
+end
+
+
+setBeckGround(parent)
+formRegister("Info.msg")
+
+form.add.text("Info.msg",1,8,maoo("-"))
+if type(text)=="table" then
+for i=1,#text do
+form.add.text("Info.msg",2,8+i,text[i])
+end
+ form.add.button("Info.msg",math.floor(Form.maxX/2)-5,9+#text+1,"Yes",Yes,"","",28)
+form.add.button("Info.msg",math.floor(Form.maxX/2)+5,9+#text+1,"No",No,"","",28)
+ 
+form.add.text("Info.msg",1,9+#text+2,maoo("-")) 
+ 
+
+end
+formChange("Info.msg")
+
+end
+
+function maoo(wtf) 
+local str=""
+local x,y=term.getSize()
+for i=1,x-1 do
+
+str=str..wtf
+end
+return str
+end
+
+
+function findfromback(arg,w)
+for n = 1,#arg do
+local a=#arg-n
+if string.sub (arg, a,a+#w-1)==w then
+return a;
+end
+end
+return false
+end
+
+
+
+function MineX.desktop()
+local function startMenu()
+setBeckGround("System.desktop")
+formChange("System.start")
+
+end
+
+local function linkUse(sLink) 
+dofile("C\\Users\\"..users[1][1].."\\Desktop\\"..sLink)
+end
+formRegister("System.desktop")
+
+form.add.multiPage("System.desktop",1,3,Form.maxY-3,Form.maxX-1,"System.desktop")
+
+if users[1][1]~="Fail-Safe" then
+dofile("MineX/Update")
+local sDir = "C\\Users\\"..users[1][1].."\\Desktop"
+
+
+
+local tAll = fs.list( sDir )
+local tFiles = {}
+local tDirs = {}
+
+for n, sItem in pairs( tAll ) do
+	if string.sub( sItem, 1, 1 ) ~= "." then
+		local sPath = fs.combine( sDir, sItem )
+		if fs.isDir( sPath ) then
+			table.insert( tDirs, sItem )
+		else
+			table.insert( tFiles, sItem )
+		end
+	end
+end
+
+for i=1,#tFiles do
+form.multiPage.addButton("System.desktop","System.desktop",1,2+i,tFiles[i],functionBuilder(linkUse,{tFiles[i]}),"","",28)
+end
+end
+
+
+form.add.button("System.desktop",1,Form.maxY,"START",startMenu,"","",28)
+end
+
+
+
+function MineX.startMenu(pos)
+local function fs()
+
+MineXLuaInit(MineX.fs,"FS")
+
+end
+local function app()
+
+MineXLuaInit(MineX.AppStarter,"AppS")
+
+end
+local function cp()
+
+MineXLuaInit(MineX.cp,"CP")
+
+end
+local function back() 
+setBeckGround("nil")
+formChange("System.desktop")
+
+end
+
+
+formRegister("System.start")
+form.add.multiPage("System.start",pos[1],pos[2],8,20,"System.start")
+form.multiPage.addText("System.start","System.start",2,2,"User is "..users[1][1])
+form.multiPage.addButton("System.start","System.start",1,3,"MY COMPUTER",fs,"","",28)
+form.multiPage.addButton("System.start","System.start",1,4,"APPLICATIONS",app,"","",28)
+form.multiPage.addButton("System.start","System.start",1,5,"CONTROL PANEL",cp,"","",28)
+form.multiPage.addButton("System.start","System.start",1,6,"SHUTDOWN",function() MineX.shutdownMenu("System.desktop","nil") end,"","",28)
+--form.multiPage.addButton("System.start","System.start",1,6,"REBOOT",os.reboot,"","",28)
+form.multiPage.addButton("System.start","System.start",1,7,"CLOSE",back,"","",28)
+
+end
+
+
+function MineX.cp()
+function calsl()
+
+dofile("MineX/FS")
+
+end
+
+local function back()
+
+formChange("System.cp")
+end
+
+local function uc()
+formRegister("System.cp.uc")
+form.add.text("System.cp.uc",1,4,"Welcome to user control panel "..users[1][1])
+form.add.button("System.cp.uc",1,5,"BACK",back,"","",28)
+
+
+
+
+
+local function ep()
+local function setPass(pass)
+
+file=io.open("C/Users/.users","r")
+
+local strTable=stringToTable(file:read("*a"))
+for i=1,#strTable do
+
+strTable[i]=strTable[i].."\n"
+
+end
+if users[1][2]==nil then users[1][2]="nil" end
+for a=1,#strTable do
+if findfromback(strTable[a],users[1][2]) then
+if pass=="" then pass="nil" end
+if users[1][2]=="nil" then
+if findfromback(strTable[a],users[1][1]) then
+strTable[a]=string.sub(strTable[a],1,findfromback(strTable[a],users[1][2])-1).."\""..pass.."\""..string.sub(strTable[a],findfromback(strTable[a],users[1][2])+string.len(users[1][2]))
+else
+strTable[a]=string.sub(strTable[a],1,findfromback(strTable[a],users[1][2])-1)..pass..string.sub(strTable[a],findfromback(strTable[a],users[1][2])+string.len(users[1][2]))
+end
+end
+end
+end
+file:close()
+
+file=io.open("C/Users/.users","w")
+for b=1,#strTable do
+file:write(strTable[b])
+end
+file:close()
+programStop()
+setFocusToSystem()
+MineX.lock()
+end
+local function check(arg)
+if arg==users[1][2] then
+MineX.readMsg({" Type new password:"},"System.cp.uc",function(arg) setPass(arg) end,function() formChange("System.cp.uc") end,"",16)
+end
+end
+
+
+if users[1][2]~=nil then
+MineX.readMsg({" Type old password:"},"System.cp.uc",function(arg) check(arg) end,function() formChange("System.cp.uc") end,"",16)
+else
+MineX.readMsg({" Type new password:"},"System.cp.uc",function(arg) setPass(arg) end,function() formChange("System.cp.uc") end,"",16)
+end
+end
+
+
+
+local function crn()
+
+local function crAccount(arg,id) 
+
+file=io.open("C/Users/.users","a")
+
+file:write("table.insert(users,{\""..arg.."\",nil,"..tostring(id).."})")
+file:close()
+os.reboot()
+formChange("System.cp")
+end
+local function lod1(arg,iarg1)
+MineX.infoMsg({" Account "..arg.." created!"},"System.cp.uc",function() crAccount(arg,iarg1) end) 
+end
+local function lod(iarg) 
+
+
+
+MineX.readMsg({" Type new account name:"},"System.cp.uc",function(arg) lod1(arg,iarg) end,function() formChange("System.cp") end,"",16) 
+end
+
+
+if users[1][3] then
+MineX.ynMsg({" Create an admin account?"},"System.cp.uc",function() lod(true) end, function() lod(false) end)
+else
+
+lod(false)
+end
+end
+
+local function del2()
+file=io.open("C/Users/.users","r")
+
+local strTable=stringToTable(file:read("*a"))
+for i=1,#strTable do
+
+strTable[i]=strTable[i].."\n"
+
+end
+for a=1,#strTable do
+if findfromback(strTable[a],"\""..users[1][1].."\"") then
+strTable[a]=""
+end
+end
+file:close()
+
+file=io.open("C/Users/.users","w")
+for b=1,#strTable do
+file:write(strTable[b])
+end
+file:close()
+os.reboot()
+end
+
+local function del()
+MineX.ynMsg({" Delete this account?"},"System.cp.uc",function() del2() end, function() formChange("System.cp.uc") end)
+end
+
+
+form.add.button("System.cp.uc",1,6,"Edit Account Password",ep,"","",28)
+form.add.button("System.cp.uc",1,7,"Create new account",crn,"","",28)
+form.add.button("System.cp.uc",1,8,"Delete this account",del,"","",28)
+
+
+
+formChange("System.cp.uc")
+end
+
+local function upc()
+formRegister("System.cp.upc")
+local function getHost()
+if register.get("config.host")=="https://raw.github.com/Dimach/MineXDownload/master/MineX/stable" then
+return "Current host: GitHub MineXDownload[Stable]"
+elseif register.get("config.host")=="https://raw.github.com/Dimach/MineXDownload/master/MineX/unstable" then
+return "Current host: GitHub MineXDownload[Unstable]"
+else
+return "Current host: Unknown"
+end
+end
+
+local function setHost()
+if register.get("config.host")=="https://raw.github.com/Dimach/MineXDownload/master/MineX/stable" then
+register.edit("config.host","https://raw.github.com/Dimach/MineXDownload/master/MineX/unstable")
+else
+register.edit("config.host","https://raw.github.com/Dimach/MineXDownload/master/MineX/stable")
+end
+end
+
+local function forceS()
+MineXLuaInit(MineX.up,"Update")
+end
+
+form.add.button("System.cp.upc",1,3,"BACK",back,"","",28)
+form.add.text("System.cp.upc",2,4,getHost)
+if users[1][3] then
+form.add.button("System.cp.upc",1,5,"Change Host",setHost,"","",28)
+form.add.button("System.cp.upc",1,6,"FORCE UPDATE",forceS,"","",28)
+end
+formChange("System.cp.upc")
+end
+
+local function lc()
+local function getLp()
+return register.get("MineX.lp")
+end
+local function setLp2(arg)
+register.edit("MineX.lp",arg)
+formChange("System.cp.lc")
+end
+local function setLp1()
+
+MineX.openDialog("C",setLp2)
+
+end
+local function setLpEu()
+
+register.edit("MineX.lp","eu")
+
+end
+
+formRegister("System.cp.lc")
+form.add.button("System.cp.lc",1,3,"BACK",back,"","",28)
+form.add.text("System.cp.lc",2,4,getLp)
+if users[1][3] then
+form.add.button("System.cp.lc",1,6,"Change LP",setLp1,"","",28)
+form.add.button("System.cp.lc",1,7,"SET English LP",setLpEu,"","",28)
+end
+formChange("System.cp.lc")
+end
+
+formRegister("System.cp")
+--form.add.button("System.cp",1,3,"RELOAD FS",calsl,"","",28)
+
+form.add.button("System.cp",1,3,"User control",uc,"","",28)
+form.add.button("System.cp",1,4,"Update control",upc,"","",28)
+form.add.button("System.cp",1,5,"Language control",lc,"","",28)
+formChange("System.cp")
+end
+
+
+
+function MineX.shutdownMenu(vAct,vBack)
+local function back() 
+setBeckGround(vBack)
+formChange(vAct)
+end
+local function logoff()
+setFocusToSystem()
+MineX.lock()
+end
+
+formRegister("System.shut")
+
+form.add.text("System.shut",1,8,maoo("-"))
+form.add.text("System.shut",14,9,"Select action..")
+
+ form.add.button("System.shut",7,10,"SHUTDOWN",function() os.shutdown() end,"","",28)
+ form.add.button("System.shut",19,10,"REBOOT",function() os.reboot() end,"","",28)
+ form.add.button("System.shut",29,10,"LOGOFF",logoff,"","",28)
+ form.add.button("System.shut",19,11,"CANCEL",back,"","",28)
+ 
+form.add.text("System.shut",1,12,maoo("-")) 
+ 
+formChange("System.shut")
+
+
+end
+
+
+
+function MineX.main()
+
+------------------------------------------------------------------
+addFunctionToRun(
+function ()
+while true do
+
+MineX.desktop()
+sleep(10)
+end
+end
+)
+MineX.startMenu({1,Form.maxY-8})
+
+formChange("System.desktop")
+------------------------------------------------------------------
+
+
+
+end
+
+
+function MineX.lock()
+setBeckGround("nil")
+local function login(gg)
+if users[gg][2]==nil then
+MineX.infoMsg({"Welcome to MineX OS","Welcome "..users[gg][1]},"System.lock",MineX.main)
+users={users[gg]}
+fs.makeDir("C\\Users\\"..users[1][1])
+fs.makeDir("C\\Users\\"..users[1][1].."\\Desktop")
+fs.makeDir("C\\Users\\"..users[1][1].."\\Programs")
+f=io.open("C\\Users\\"..users[1][1].."\\.folder","w")
+f:write("userNameOnly")
+f:close()
+MineX.createDirInPrograms("Standart")
+MineX.createLinkInPrograms("Minecraft WEB","Standart","mxweb")
+MineX.createLinkInPrograms("MineXshell","Standart","MineX/MineXshellExec")
+--mxweb=io.open("C\\Users\\"..users[1][1].."\\Desktop\\Minecraft WEB Browser","w")
+--mxweb:write("dofile(\"mxweb\")")
+--mxweb:close()
+else
+
+local function check()
+if form.read.getText("System.lock","pass")==users[gg][2] then
+MineX.infoMsg({"Welcome to MineX OS","Welcome "..users[gg][1]},"nil",MineX.main)
+
+users={users[gg]}
+fs.makeDir("C\\Users\\"..users[1][1])
+fs.makeDir("C\\Users\\"..users[1][1].."\\Desktop")
+fs.makeDir("C\\Users\\"..users[1][1].."\\Programs")
+f=io.open("C\\Users\\"..users[1][1].."\\.folder","w")
+f:write("userNameOnly")
+f:close()
+MineX.createDirInPrograms("Standart")
+MineX.createLinkInPrograms("Minecraft WEB","Standart","mxweb")
+MineX.createLinkInPrograms("MineXshell","Standart","MineX/MineXshellExec")
+--mxweb=io.open("C\\Users\\"..users[1][1].."\\Desktop\\Minecraft WEB Browser","w")
+--mxweb:write("dofile(\"mxweb\")")
+--mxweb:close()
+else
+MineX.infoMsg({"WARNING !!!","PASSWORD INCORRECT !!!"},"nil",MineX.lock)
+
+end
+
+end
+
+
+formRegister("System.lock")
+form.add.text("System.lock",1,5,maoo("-"))
+form.add.text("System.lock",1,6,"Password for "..users[gg][1])
+form.add.read("System.lock",1,7,"","",16,"pass")
+ form.add.button("System.lock",1,8,"OK",check,"","",28)
+ form.add.button("System.lock",7,8,"CANCEL",MineX.lock,"","",28)
+ 
+form.add.text("System.lock",1,9,maoo("-")) 
+ 
+formChange("System.lock")
+end
+end
+if not fs.exists("C\\Users") then
+fs.makeDir("C\\Users")
+end
+if not fs.exists("C\\Users\\.users") then
+
+file=io.open("C\\Users\\.users","w")
+file:write("users={}\n")
+file:write("table.insert(users,{\"Admin\",nil,true})\n")
+file:close()
+fs.makeDir("C\\Users\\Admin")
+fs.makeDir("C\\Users\\Admin\\Desktop")
+end
+dofile("C\\Users\\.users")
+formRegister("System.lock")
+form.add.multiPage("System.lock",1,3,Form.maxY-2,Form.maxX-1,"System.lock")
+form.add.button("System.lock",1,Form.maxY,"SHUTDOWN",function() os.shutdown() end,"","",28)
+for i=1,#users do
+form.multiPage.addButton("System.lock","System.lock",1,i*2+2,users[i][1],functionBuilder(login,{i}),"","",28)
+
+end
+
+formChange("System.lock")
+
+
+end
+
+dofile("MineX/AppStarter")
+
+dofile("MineX/FS")
+
+dofile("MineX/MineXshell")
+if arg==28 then
+users={}
+
+users[1]={"Fail-Safe"}
+MineXLuaInit(MineX.main,"System")
+else
+MineXLuaInit(MineX.lock,"System")
+end
+
+
+MineXRuner()
+--dofile("Reporter")

@@ -1,0 +1,133 @@
+function checkCRC32()
+
+
+-- print("[main].checking: ".."Utf8Fix![OK]")
+dofile("UTF8Fix")
+sleep(0.5)
+
+-- print("[main].checking: ".."MineX![OK]")
+sleep(0.5)
+
+dofile("MineX/MineX")
+
+
+return true
+end
+
+
+term.clear()
+term.setCursorPos(1,1)
+
+if fs.exists("UpdateTemp") then
+print("Setting up update...")
+dofile("UpdateTemp/fl")
+for i=1,#fileslist do
+if fileslist[i][1]=="dir" then
+fs.delete(fileslist[i][2])
+fs.makeDir(fileslist[i][2])
+print((i*100/#fileslist).."% making dir "..fileslist[i][2])
+
+else
+
+
+		print((i*100/#fileslist).."% getting "..fileslist[i][2])
+		fs.delete(fileslist[i][2])
+		fs.copy("UpdateTemp/"..fileslist[i][2],fileslist[i][2])
+		end
+		
+		sleep(1)
+end
+
+
+print("Setup complite, rebooting")
+sleep(1)
+fs.delete("UpdateTemp")
+os.reboot()
+
+end
+
+print("BOOTUP succes")
+giF=false
+local function graphInit()
+local f=io.open("BOOTUP.txt","r")
+local co=0
+while f:read()~=nil do
+co=co+1
+end
+f:close()
+local file=io.open("BOOTUP.txt","r")
+for b=1,co/19 do
+sleep(1)
+term.clear()
+term.setCursorPos(1,1)
+local h=file:read()
+if giF then
+break
+end
+for i=1,18 do
+print(file:read())
+end
+end
+file:close()
+giF=true
+end
+local function smallEM()
+while not giF do
+os.startTimer(0.1)
+local k,o = os.pullEvent()
+if k=="key" and o==28 then
+giF=true
+end
+end
+end
+local function pastBoot()
+local rprint=print
+local function print(str)
+
+if giF then
+rprint(str)
+end
+
+end
+print("Loading \"XLua\" deamon...")
+
+dofile("XLua")
+sleep(0.5)
+print("\"XLua\" deamon loaded")
+sleep(0.5)
+print("Loading XLuaApi")
+dofile("XLuaAPI")
+dofile("XLuaStandartComponents")
+dofile("registerAPI")
+dofile("additionMineXComponents")
+print("XLuaApi loaded")
+
+sleep(0.5)
+print("\"XLua\" deamon loaded")
+print("Loading \"Main\" deamon...")
+sleep(0.5)
+print("\"Main\" deamon loaded")
+end
+
+parallel.waitForAll(graphInit,pastBoot,smallEM)
+if not checkCRC32() then
+
+
+textutils.slowPrint("[Main].warning: MineX error detected ")
+sleep(0.5)
+textutils.slowPrint("[Main].warning: MineX suspended =>| shutdown MineX")
+sleep(0.5)
+textutils.slowPrint("[Main].deamon: exiting to CraftOS")
+sleep(0.5)
+textutils.slowPrint("[Main].deamon.close()|[XLua].deamon.close()")
+sleep(2)
+term.clear()
+term.setCursorPos(1,1)
+-- print(os.version())
+
+end
+sleep(0.5)
+
+
+
+
