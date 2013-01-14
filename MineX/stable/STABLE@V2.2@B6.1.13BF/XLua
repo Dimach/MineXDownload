@@ -4,7 +4,11 @@ mass["paralelRun"]={}
 tFilters = {}
 prSelMod = false
 MineX.write=write
-
+MineX.isColor=function()
+if term.isColor()~=nil then return term.isColor() end
+return false
+end
+MineX.isColour=MineX.isColor
 function stringToTable(str)
 str=str.."\n"
 local drop={}
@@ -419,7 +423,7 @@ end
 end
 
 function printAllComponent(formName)
-if term.isColour() then
+if MineX.isColour() then
 printBackGround(formName,true) 
 for n=1, #mass["API"]["components"] do
 name=mass["API"]["components"][n][1]
@@ -544,12 +548,12 @@ function selectorUpdate(ev, key, p2, p3, p4, p5)
 term.setCursorBlink(false)
 if prSelMod then return end
 x,y=0,0
-if term.isColor() then
+if MineX.isColor() then
 allEventUpdate(ev, key, p2, p3, p4, p5)
 else
 eventProcessing(ev, key, p2, p3, p4, p5)
 end
-if not term.isColour() and ev=="key" and (key==200 or key==203 or key==205 or key==208) then
+if not MineX.isColour() and ev=="key" and (key==200 or key==203 or key==205 or key==208) then
 if mass[appIndef]["selector"]["type"] == nil then
 x = 0
 y = 0
