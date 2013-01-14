@@ -5,7 +5,7 @@ tFilters = {}
 prSelMod = false
 MineX.write=write
 MineX.isColor=function()
-if term.isColor()~=nil then return term.isColor() end
+if term.isColor~=nil then return term.isColor() end
 return false
 end
 MineX.isColour=MineX.isColor
