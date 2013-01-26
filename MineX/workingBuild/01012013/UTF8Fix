@@ -50,4 +50,3 @@ end
 return string.sub(var,fir*2,-sSek*2)
 
 end
-

@@ -257,7 +257,7 @@ rebuild(string.sub(arg[4],1,#arg[4]-1)..arg[5])
 selectorChenge(arg[6]+1,arg[2]-1,"left")
 end
 if events[1]=="char" then
-rebuild(arg[4]..key..arg[5])
+rebuild(arg[4]..events[2]..arg[5])
 selectorChenge(arg[1],arg[2],"right")
 end
 if events[1]=="key" and events[2]==28 then

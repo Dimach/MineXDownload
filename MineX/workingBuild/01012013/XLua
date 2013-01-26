@@ -4,7 +4,11 @@ mass["paralelRun"]={}
 tFilters = {}
 prSelMod = false
 MineX.write=write
-
+MineX.isColor=function()
+if term.isColor~=nil then return term.isColor() end
+return false
+end
+MineX.isColour=MineX.isColor
 function stringToTable(str)
 str=str.."\n"
 local drop={}
@@ -61,7 +65,7 @@ if not prSelMod then
 local ok, param = coroutine.resume(coroutine.create(function() printBackGround(mass[appIndef]["backGroundForm"]) printAllComponent(mass[appIndef]["actualForm"]) end))
 else
 term.setCursorPos(1,1)
-if term.isColor() then
+if MineX.isColor() then
 term.setBackgroundColor(colors.cyan)
 term.setTextColor(colors.lime)
 end
@@ -267,19 +271,21 @@ mass[appIndef]["appForms"][formName]["FormObjects"][cType][name]={}
 end
 local x,y = term.getSize()
 if appIndef ~= mass["multiTaskSupport"][1][2] then
-form.add.button(formName,x-5,1,"X",programStop,"","",28,{colors.black,colors.red,colors.black,colors.red})
+form.add.button(formName,x-5,1,"X",programStop,"","",28,{"|X|","[X]","&msg&"},{colors.black,colors.red})
 if formName~="System.start" then
-form.add.button(formName,x-13,1,"START",function() startMenu(fromName) end,"","",28,{colors.white,colors.lightGray,colors.white,colors.lightGray})
+form.add.button(formName,x-13,1,"START",function() startMenu(fromName) end,"","",28,{"|START|","[START]","&msg&"},{colors.lime,colors.yellow})
 end
 end
 local drop=""
 for i=1,x-1 do drop=drop.."-" end
-form.add.text(formName,1,2,drop,"",{colors.cyan,colors.cyan})
+form.add.text(formName,1,2,drop,"",nil,{colors.cyan,colors.cyan})
 local drop=""
 for i=1,x-1 do drop=drop.."-" end
-form.add.text(formName,1,1,drop,"",{colors.cyan,colors.cyan})
-form.add.text(formName,11,1,"|","",{colors.lime,colors.cyan})
-form.add.text(formName,1,1,function() return "Time "..textutils.formatTime(os.time(),true) end,"",{colors.lime,colors.cyan})
+if MineX.isColor() then
+form.add.text(formName,1,1,drop,"",nil,{colors.cyan,colors.cyan})
+end
+form.add.text(formName,11,1,"|","",nil,{colors.lime,colors.cyan})
+form.add.text(formName,1,1,function() return "Time "..textutils.formatTime(os.time(),true) end,"",nil,{colors.lime,colors.cyan})
 end
 
 function addFunctionToRun(sFunc,arg,index)
@@ -426,7 +432,8 @@ end
 end
 
 function printAllComponent(formName)
-if term.isColor() then
+if MineX.isColor() then
+printBackGround("nil")
 printBackGround(formName,true) 
 for n=1, #mass["API"]["components"] do
 name=mass["API"]["components"][n][1]
@@ -504,6 +511,14 @@ mass[appIndef]["selector"]["specialIndex"]=1
 mass[appIndef]["actualForm"]=""
 mass[appIndef]["backGroundForm"]=""
 formRegister("nil")
+if MineX.isColor() then
+local x,y=term.getSize() 
+local drop=""
+for i=1,x-1 do drop=drop.."-" end
+for c=1,y do 
+form.add.text("nil",1,c,drop,"",nil,{colors.lightGray,colors.lightGray})
+end
+end
 setBeckGround("nil")
 formChange("nil")
 end
@@ -551,12 +566,12 @@ function selectorUpdate(ev, key, p2, p3, p4, p5)
 term.setCursorBlink(false)
 if prSelMod then return end
 x,y=0,0
-if term.isColor() then
+if MineX.isColor() then
 allEventUpdate(ev, key, p2, p3, p4, p5)
 else
 eventProcessing(ev, key, p2, p3, p4, p5)
 end
-if not term.isColor() and ev=="key" and (key==200 or key==203 or key==205 or key==208) then
+if not MineX.isColor() and ev=="key" and (key==200 or key==203 or key==205 or key==208) then
 if mass[appIndef]["selector"]["type"] == nil then
 x = 0
 y = 0
@@ -659,6 +674,37 @@ end
 
 function getActualForm()
 return mass[appIndef]["actualForm"]
+end
+
+function app()
+local appdrop ={}
+appdrop.setTitle=function(title)
+for i=1,#mass["multiTaskSupport"] do
+if  mass["multiTaskSupport"][i][2]==appIndef then
+mass["multiTaskSupport"][i][1]=title
+end
+end
+end
+appdrop.getTitle=function()
+for i=1,#mass["multiTaskSupport"] do
+if mass["multiTaskSupport"][i][2]==appIndef then
+return mass["multiTaskSupport"][i][1]
+end
+end
+end
+appdrop.addThread=addFunctionToRun
+for i,p in pairs(mass[appIndef]["appForms"]) do
+appdrop[i]={}
+appdrop[i].add={}
+for b=1,#mass["API"]["components"] do
+appdrop[i].add[mass["API"]["components"][b][1]]=function(...)
+args={...}
+mass["API"]["components"][b][5](i,args)
+end--mass["API"]["components"]
+
+end
+end
+return appdrop
 end
 
 function startMenu()

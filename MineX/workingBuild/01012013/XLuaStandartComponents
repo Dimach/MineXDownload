@@ -1,3 +1,20 @@
+local function generateStyleController(defStyle,defColor,style,color)
+if style~=nil and style~={} then
+if (#style<#defStyle) then
+for i=1,#defStyle-#style do
+for c=1,#style do
+table.insert(style,style[c])
+end
+end
+end
+else
+style=defStyle
+end
+
+
+
+return {style}
+end
 
 function ifnotnil(arg,def)
 if arg and arg~={} then
@@ -7,16 +24,100 @@ return def
 end
 end
 
+
+local function reqFinder(str,req)
+
+str=str.." "
+local drop={}
+local pos=1
+local sPos
+local mPos=1
+while true do
+sPos=string.find(str," ",pos)
+if not sPos then break end
+drop[mPos]=string.sub(str,pos,sPos-1)
+pos=sPos+1
+mPos=mPos+1
+end
+return drop
+
+
+end
+
+
+local function predrawElement(replacePatt,style)
+local slp=style
+local drop={}
+local f = {}
+for i,p in pairs(replacePatt) do
+slp=string.gsub(slp,i,p)
+end
+if MineX.isColor() then
+
+f=reqFinder(slp)
+for i=1,16 do
+slp=string.gsub(slp,"$%"..i,"")
+slp=string.gsub(slp,"$$"..i,"")
+end
+drop[slp]={colors.lime,colors.lightGray}
+else
+for i=1,16 do
+slp=string.gsub(slp,"$%"..i,"")
+slp=string.gsub(slp,"$$"..i,"")
+end
+drop[slp]={colors.black,colors.white}
+end
+
+
+--for i,p in pairs(f) do
+--drop[f[1][1]]={colors.black,colors.white}
+--end
+return drop
+end
+
 local function setColor(clr1,clr2)
+if MineX.isColor() then
 term.setTextColor(ifnotnil(clr1,colors.gray))
 term.setBackgroundColor(ifnotnil(clr2,colors.lightGray))
 end
+end
+
+local function drawElement(etable)
+for i,p in pairs(etable) do
+setColor(p[1],p[2])
+write(i)
+end
+end
+
+
+local function validateStyle(st,obj)
+
+if obj=="button" then
+if st and st~={} and st~="" then
+if st[1] and st[2] and st[3] then
+if findfromback(st[1],"&text&") and findfromback(st[2],"&text&") and findfromback(st[3],"&text&") then
+return st
+end
+end
+end
+return {"[&text&]",">[&text&]<","&text&"}
+end
+
+return error("Error style0x0001")
+end
+
+
+
+
 
 local function setDefColor()
+if MineX.isColor() then
 term.setTextColor(colors.gray)
 term.setBackgroundColor(colors.lightGray)
 end
+end
 
+-------------------------------------------------------------------------------------Button start
 function buttonPrint(arg,asSelected)
 x = arg[1]
 y = arg[2]
@@ -30,67 +131,39 @@ msg = arg[5]()
 else
 msg = arg[5]
 end
+local r={}
+r["&text&"]=text
+r["&msg&"]=msg
 if asSelected then
 term.setCursorPos(x,y)
 
-if term.isColor() then
-if arg[8] then
 
-setColor(arg[8][3],arg[8][4])
-else
+
+drawElement(predrawElement(r,arg[8][1][2]))
 setDefColor()
-
-end
-end
-term.write(">["..text.."]<")
-if term.isColor() then
-term.setTextColor(colors.white)
-term.setBackgroundColor(colors.black)
-end
 
 term.setCursorPos(x,y-1)
-if term.isColor() then
-if arg[8] then
 
-setColor(arg[8][5],arg[8][6])
-else
-setDefColor()
-
-end
-end
-term.write(msg)
-if term.isColor() then
-term.setTextColor(colors.white)
-term.setBackgroundColor(colors.black)
-end
 
 else
 term.setCursorPos(x+1,y)
-if term.isColor() then
-if arg[8] then
 
-setColor(arg[8][1],arg[8][2])
-else
+--term.write(string.gsub(arg[8][1][1],"&text&",text))
+drawElement(predrawElement(r,arg[8][1][1]))
 setDefColor()
 
 end
 end
-term.write("["..text.."]")
-if term.isColor() then
-term.setTextColor(colors.white)
-term.setBackgroundColor(colors.black)
-end
 
-end
-end
-
-function buttonAdd(x,y,text,associative,msg,index,key,colorTable)
+function buttonAdd(x,y,text,associative,msg,index,key,styleTable,colorTable)
 if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
 if text==nil then text="" elseif msg==nil then msg="" end
 if type(associative)~="function" then error("Error #011:Исполняемый код не обнаружен") end
 if type(key)~="number" then key=28 end
 
-return {x,y,text,associative,msg,key,index,colorTable}
+
+
+return {x,y,text,associative,msg,key,index,generateStyleController({"[&text&]",">[&text&]<","&msg&"},styleTable)}
 
 end
 
@@ -103,7 +176,8 @@ if events[1]=="mouse_click" and events[2]==1 and events[4]==arg[2] and events[3]
 addFunctionToRun(arg[4],nil,arg[7])
 end
 end
-
+-------------------------------------------------------------------------------------Button end
+-------------------------------------------------------------------------------------CheckBox start
 function checkBoxGetState(arg,index)
 for i=1,#arg do
 if arg[i][4]==index then
@@ -112,11 +186,11 @@ end
 end
 end
 
-function checkBoxAdd(x,y,msg,index,state)
+function checkBoxAdd(x,y,msg,index,state,styleTable,colorTable)
 if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
 if msg==nil then msg="" end
 if type(state)~="boolean" then state=false end
-return {x,y,msg,index,state}
+return {x,y,msg,index,state,generateStyleController({"[ ]","[V]",">[ ]<",">[V]<","&msg&"},styleTable)}
 end
 
 function checkBoxEventUpdate(events,arg)
@@ -146,25 +220,49 @@ x = arg[1]
 y = arg[2]
 msg = arg[3]
 state = arg[5]
+local r={}
+r["&msg&"]=msg
 if asSelected then
 term.setCursorPos(x,y)
+
 if state then
-term.write(">[V]<")
+--term.write(arg[8][1][4])
+drawElement(predrawElement(r,arg[8][1][4]))
+setDefColor()
+
 else
-term.write(">[ ]<")
-end
-term.setCursorPos(x,y-1)
-term.write(msg)
-else
-term.setCursorPos(x+1,y)
-if state then
-term.write("[V]")
-else
-term.write("[ ]")
-end
-end
+--term.write(arg[8][1][3])
+drawElement(predrawElement(r,arg[8][1][3]))
+setDefColor()
+
 end
 
+term.setCursorPos(x,y-1)
+--term.write(msg)
+drawElement(predrawElement(r,arg[8][1][5]))
+setDefColor()
+
+else
+term.setCursorPos(x+1,y)
+
+if state then
+
+--term.write(arg[8][1][2])
+drawElement(predrawElement(r,arg[8][1][2]))
+setDefColor()
+
+
+else
+
+--term.write(arg[8][1][1])
+drawElement(predrawElement(r,arg[8][1][1]))
+setDefColor()
+
+end
+end
+end
+-------------------------------------------------------------------------------------CheckBox end
+-------------------------------------------------------------------------------------Text start
 function textPrint(arg,asSelected)
 x = arg[1]
 y = arg[2]
@@ -174,25 +272,22 @@ else
 text = arg[3]
 end
 term.setCursorPos(x,y)
-if arg[5] then
-if term.isColor() then
-term.setTextColor(ifnotnil(arg[5][1],colors.gray))
-term.setBackgroundColor(ifnotnil(arg[5][2],colors.lightGray))
-end
-end
-term.write(text)
-if term.isColor() then
-term.setTextColor(colors.white)
-term.setBackgroundColor(colors.black)
-end
+--term.write(string.gsub(arg[5][1][1],"&text&",text))
+local r={}
+r["&text&"]=text
+drawElement(predrawElement(r,arg[5][1][1]))
+setDefColor()
+
+
 end
 
-function textAdd(x,y,text,index,colorTable)
+function textAdd(x,y,text,index,styleTable,colorTable)
 if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
 if text==nil then text="" end
-return {x,y,text,index,colorTable}
+return {x,y,text,index,generateStyleController({"&text&"},styleTable)}
 end
-
+-------------------------------------------------------------------------------------Text end
+-------------------------------------------------------------------------------------ProgressBar start
 function progresPrint(arg,asSelected)
 x = arg[1]
 y = arg[2]
@@ -205,14 +300,25 @@ procentAsSymbol = math.modf (100/(len-2))
 sProgress = math.modf (fir/procentAsSymbol)
 progress = math.modf (sec/procentAsSymbol)
 for i=1,len-2 do
-if i <= progress and i >= sProgress then progres = progres.."|" else progres = progres.." " end
+if i <= progress and i >= sProgress then progres = progres..arg[6][1][2] else progres = progres..arg[6][1][3] end
 end
 term.setCursorPos(x,y)
-term.write("\{"..progres.."\}")
+
+if arg[6] then
+if term.isColor() then
+setColor(arg[6][2][1],arg[6][2][2])
+end
+end
+term.write(string.gsub(arg[6][1][1],"&prc&",progress))
+if term.isColor() then
+term.setTextColor(colors.white)
+term.setBackgroundColor(colors.black)
 end
 
-function progresBarAdd(x,y,len,index)
-return {x,y,len,0,0,index}
+end
+
+function progresBarAdd(x,y,len,index,styleTable,colorTable)
+return {x,y,len,0,0,index,generateStyleController({"\{&prc&\}","|"," "},{colors.gray,colors.lightGray},styleTable,colorTable)}
 end
 
 function progresBarSet(arg,index,fir,sec)
@@ -224,7 +330,8 @@ return arg
 end
 end
 end
-
+-------------------------------------------------------------------------------------ProgressBar end
+-------------------------------------------------------------------------------------Read start
 function readPrint(arg,asSelected)
 x = arg[1]
 y = arg[2]
@@ -313,12 +420,13 @@ term.setCursorPos(arg[1]+3+getFixLen(arg[3]),arg[2])
 term.setCursorBlink(true)
 end
 end
-
-function multiPageZoneAdd(x,y,lenV,lenG,index)
+-------------------------------------------------------------------------------------Read end
+-------------------------------------------------------------------------------------Multipage start
+function multiPageZoneAdd(x,y,lenV,lenG,index,styleTable,colorTable)
 if type(x)~="number" or type(y)~="number" then error("Error #543:Кордината должна быть числом") end
 if type(lenV)~="number" or type(lenG)~="number" then error("Error #549:Размер должен быть числом") end
 arg={}
-arg["info"]={x,y,lenV,lenG,index,1,lenV,1,false}
+arg["info"]={x,y,lenV,lenG,index,1,lenV,1,false,generateStyleController({"+","+","+","+","-","-","|","|"},styleTable)}
 arg["objects"]={}
 arg["objects"]["noselected"]={}
 arg["objects"]["noselected"]["text"]={}
@@ -388,19 +496,57 @@ end
 end
 end
 term.setCursorPos(obX,obY)
-term.write("+")
-for i=1,obMLX-2 do term.write("-") end
-term.write("+")
+
+
+
+
+-- if arg["info"][8] then
+-- if term.isColor() then
+-- setColor(arg["info"][8][2][1],arg["info"][8][2][2])
+-- end
+-- end
+--term.write(arg["info"][8][1][1])
+drawElement(predrawElement({},arg["info"][10][1][1]))
+setDefColor()
+
+
+for i=1,obMLX-2 do --term.write(arg["info"][8][1][5]) 
+drawElement(predrawElement({},arg["info"][10][1][5]))
+setDefColor()
+end
+
+
+--term.write(arg["info"][8][1][2])
+drawElement(predrawElement({},arg["info"][10][1][2]))
+setDefColor()
+
 term.setCursorPos(obX,obY+obML-1)
-term.write("+")
-for i=1,obMLX-2 do term.write("-") end
-term.write("+")
+--term.write(arg["info"][8][1][3])
+drawElement(predrawElement({},arg["info"][10][1][3]))
+setDefColor()
+
+for i=1,obMLX-2 do --term.write(arg["info"][8][1][6])
+drawElement(predrawElement({},arg["info"][10][1][6]))
+setDefColor()
+end
+--term.write(arg["info"][8][1][4])
+drawElement(predrawElement({},arg["info"][10][1][4]))
+setDefColor()
+
 for i=obY+1,obML+obY-2 do 
 term.setCursorPos(obX,i)
-term.write("|")
+--term.write(arg["info"][8][1][7])
+drawElement(predrawElement({},arg["info"][10][1][7]))
+setDefColor()
+
 term.setCursorPos(obX+obMLX-1,i)
-term.write("|")
+
+--term.write(arg["info"][8][1][8])
+drawElement(predrawElement({},arg["info"][10][1][8]))
+setDefColor()
+
 end
+
 end
 
 function multiPageEventUpdate(events,arg,sel)
@@ -510,7 +656,9 @@ end
 end
 return drop
 end
+-------------------------------------------------------------------------------------Multipage end
 
+-------------------------------------------------------------------------------------Defining zone
 addComponent("multiPage","special",multiPagePrint,multiPageZoneAdd,multiPageEventUpdate,nil,{multiPageZoneAddButton,multiPageZoneAddText},{"addButton","addText"},multiPageFirstSelector,multiPageSecondSelector,multiPageColourEventUpdate)
 
 addComponent("text","noselected",textPrint,textAdd)
